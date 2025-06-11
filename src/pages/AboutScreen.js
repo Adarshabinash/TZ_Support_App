@@ -1,20 +1,29 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
 
 const AboutScreen = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
 
   const validate = () => {
     let valid = true;
@@ -44,26 +53,28 @@ const AboutScreen = ({navigation}) => {
     // if (validate()) {
     //   Alert.alert('Success', 'Signed in successfully!');
     // }
-
     navigation.navigate('Contact');
   };
 
   return (
     <ImageBackground
-      source={require('../assets/img/login.jpg')} // <-- Replace with your image
+      source={require('../assets/img/login.jpg')}
       style={styles.background}
       resizeMode="cover">
+      {/* Overlay for dark gradient */}
+      <View style={styles.overlay} />
       <KeyboardAvoidingView
         style={styles.screen}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.glassCard}>
+        <Animated.View
+          style={[styles.card, {transform: [{translateY: slideAnim}]}]}>
           <Text style={styles.title}>Welcome</Text>
-          <Text style={styles.subtitle}>Please sign in to continue</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
 
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#555"
+            placeholderTextColor="#888"
             value={userId}
             onChangeText={setUserId}
             keyboardType="email-address"
@@ -76,7 +87,7 @@ const AboutScreen = ({navigation}) => {
           <TextInput
             style={styles.input}
             placeholder="Password"
-            placeholderTextColor="#555"
+            placeholderTextColor="#888"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -88,7 +99,7 @@ const AboutScreen = ({navigation}) => {
           <TouchableOpacity style={styles.button} onPress={handleSignIn}>
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -98,70 +109,64 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
   screen: {
     flex: 1,
     justifyContent: 'center',
     padding: 20,
   },
-  glassCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    padding: 24,
+  card: {
+    backgroundColor: '#fff',
+    padding: 28,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    shadowOffset: {width: 0, height: 10},
-    elevation: 10,
-    backdropFilter: 'blur(10px)', // just symbolic for the idea
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: {width: 0, height: 5},
+    elevation: 8,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 4,
-    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 6,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#ddd',
+    color: '#666',
     marginBottom: 24,
     textAlign: 'center',
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    padding: 14,
-    marginBottom: 12,
+    backgroundColor: '#f2f2f2',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 10,
     fontSize: 16,
-    color: '#fff',
+    color: '#222',
+    marginBottom: 12,
   },
   error: {
-    color: '#ffaaaa',
+    color: '#d00',
     fontSize: 13,
-    marginBottom: 10,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   button: {
-    backgroundColor: '#ffffffaa',
-    padding: 14,
+    backgroundColor: '#4a90e2',
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonText: {
-    color: '#222',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  linkButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#ffffff',
-    fontSize: 16,
-    textDecorationLine: 'underline',
   },
 });
 

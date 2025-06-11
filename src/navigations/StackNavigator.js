@@ -12,9 +12,21 @@ const Stack = createNativeStackNavigator();
 const StackScreen = () => {
   return (
     <Stack.Navigator initialRouteName="Home">
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="About" component={AboutScreen} />
-      <Stack.Screen name="Contact" component={ContactScreen} />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Contact"
+        component={ContactScreen}
+        options={{headerShown: false}}
+      />
     </Stack.Navigator>
   );
 };
