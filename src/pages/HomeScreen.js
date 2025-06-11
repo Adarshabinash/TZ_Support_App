@@ -21,7 +21,7 @@ const HomeScreen = ({navigation}) => {
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('About')}>
-        <Text style={styles.buttonText}>Go to Login</Text>
+        <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
     </View>
   );
@@ -53,10 +53,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     borderRadius: 25,
     elevation: 6,
+    top: 30,
   },
   buttonText: {
     color: '#3E8EDE',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
 });

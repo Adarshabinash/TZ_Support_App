@@ -236,7 +236,7 @@ const QuizForm = () => {
   };
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <View style={{flex: 1}}>
       <SafeAreaView style={{flex: 1}}>
         <BottomSheet modalRef={modalRef} modalHeight={modalHeight}>
           <View style={styles.modalContainer}>
@@ -317,7 +317,7 @@ const QuizForm = () => {
           </Pressable>
         </ScrollView>
       </SafeAreaView>
-    </GestureHandlerRootView>
+    </View>
   );
 };
 
@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: '#f4f6f8',
+    top: 20,
   },
   modalContainer: {
     height: window.WindowHeigth * 0.3,
