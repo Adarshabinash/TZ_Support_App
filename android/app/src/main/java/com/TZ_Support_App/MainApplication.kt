@@ -1,4 +1,4 @@
-package com.awesomeproject
+package com.TZ_Support_App
 
 import android.app.Application
 import com.facebook.react.PackageList
