@@ -248,7 +248,7 @@ const styles = ScaledSheet.create({
   },
   footer: {
     paddingHorizontal: width < 350 ? '10@s' : '15@s',
-    paddingVertical: '10@vs',
+    paddingVertical: '11@vs',
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 2},
@@ -257,11 +257,11 @@ const styles = ScaledSheet.create({
     elevation: 3,
     borderRadius: '10@s',
     alignSelf: 'center',
-    width: '95%',
-    marginTop: '10@vs',
+    width: '105%',
+    marginTop: '12@vs',
     borderWidth: 0.5,
     borderColor: '#ccc',
-    marginBottom: height < 600 ? '5@vs' : '10@vs',
+    // marginBottom: height < 600 ? '5@vs' : '10@vs',
   },
   footerText: {
     fontSize: width < 350 ? '11@ms' : '13@ms',
