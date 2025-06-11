@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  useColorScheme,
+  StatusBar,
 } from 'react-native';
 
 const AboutScreen = ({navigation}) => {
@@ -16,6 +18,19 @@ const AboutScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
   const slideAnim = useRef(new Animated.Value(300)).current;
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+
+  const colors = {
+    background: isDark ? '#121212' : '#f5f6fa',
+    card: isDark ? '#1e1e1e' : '#ffffff',
+    text: isDark ? '#f5f6fa' : '#2c3e50',
+    subText: isDark ? '#aaaaaa' : '#555',
+    button: isDark ? '#4aa9ff' : '#3E8EDE',
+    error: '#ff4d4f',
+    inputBg: isDark ? '#2c2c2c' : '#f0f0f0',
+    placeholder: isDark ? '#999' : '#888',
+  };
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -51,9 +66,8 @@ const AboutScreen = ({navigation}) => {
 
   const handleSignIn = () => {
     // if (validate()) {
-    //   Alert.alert('Success', 'Signed in successfully!');
-    // }
     navigation.navigate('Contact');
+    // }
   };
 
   return (
@@ -61,42 +75,79 @@ const AboutScreen = ({navigation}) => {
       source={require('../assets/img/login.jpg')}
       style={styles.background}
       resizeMode="cover">
-      {/* Overlay for dark gradient */}
-      <View style={styles.overlay} />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
+      <View
+        style={[
+          styles.overlay,
+          {backgroundColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)'},
+        ]}
+      />
       <KeyboardAvoidingView
-        style={styles.screen}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.screen}>
         <Animated.View
-          style={[styles.card, {transform: [{translateY: slideAnim}]}]}>
-          {/* <Text style={styles.title}>Welcome</Text> */}
-          <Text style={styles.subtitle}>Sign in to your account</Text>
+          style={[
+            styles.card,
+            {
+              transform: [{translateY: slideAnim}],
+              backgroundColor: colors.card,
+              shadowColor: isDark ? '#000' : '#ccc',
+            },
+          ]}>
+          <Text style={[styles.subtitle, {color: colors.subText}]}>
+            Sign in to your account
+          </Text>
 
           <TextInput
-            style={styles.input}
-            placeholder="UserID"
-            placeholderTextColor="#888"
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.subText,
+              },
+            ]}
+            placeholder="User ID"
+            placeholderTextColor={colors.placeholder}
             value={userId}
             onChangeText={setUserId}
             keyboardType="email-address"
             autoCapitalize="none"
           />
           {errors.userId ? (
-            <Text style={styles.error}>{errors.userId}</Text>
+            <Text style={[styles.error, {color: colors.error}]}>
+              {errors.userId}
+            </Text>
           ) : null}
 
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.inputBg,
+                color: colors.text,
+                borderColor: colors.subText,
+              },
+            ]}
             placeholder="Password"
-            placeholderTextColor="#888"
+            placeholderTextColor={colors.placeholder}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
           {errors.password ? (
-            <Text style={styles.error}>{errors.password}</Text>
+            <Text style={[styles.error, {color: colors.error}]}>
+              {errors.password}
+            </Text>
           ) : null}
 
-          <TouchableOpacity style={styles.button} onPress={handleSignIn}>
+          <TouchableOpacity
+            style={[styles.button, {backgroundColor: colors.button}]}
+            onPress={handleSignIn}>
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -105,13 +156,14 @@ const AboutScreen = ({navigation}) => {
   );
 };
 
+export default AboutScreen;
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   screen: {
     flex: 1,
@@ -119,52 +171,37 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: '#fff',
     padding: 28,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: {width: 0, height: 5},
-    elevation: 8,
-    top: 100,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 6,
-    textAlign: 'center',
+    elevation: 10,
   },
   subtitle: {
-    fontSize: 19,
-    color: '#666',
-    marginBottom: 24,
+    fontSize: 20,
+    fontWeight: '500',
+    marginBottom: 20,
     textAlign: 'center',
   },
   input: {
-    backgroundColor: '#f2f2f2',
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 10,
     fontSize: 16,
-    color: '#222',
     marginBottom: 12,
-    borderColor: 'black',
-    borderWidth: 0.2,
+    borderWidth: 0.6,
   },
   error: {
-    color: '#d00',
     fontSize: 13,
     marginBottom: 8,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: '#4a90e2',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 12,
   },
   buttonText: {
     color: '#fff',
@@ -172,5 +209,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-export default AboutScreen;

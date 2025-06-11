@@ -11,6 +11,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  useColorScheme,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet from '../utils/BottomSheet';
@@ -33,6 +34,18 @@ const QuizForm = () => {
   const [answers, setAnswers] = useState({});
   const [imageInfo, setImageInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const scheme = useColorScheme();
+
+  const isDarkMode = scheme === 'dark';
+
+  const colors = {
+    background: isDarkMode ? '#121212' : '#f4f6f8',
+    card: isDarkMode ? '#1e1e1e' : '#ffffff',
+    text: isDarkMode ? '#ffffff' : '#2c3e50',
+    subText: isDarkMode ? '#cccccc' : '#34495e',
+    buttonBg: isDarkMode ? '#3498db' : '#2980b9',
+    imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
+  };
 
   const handleCheckbox = (qid, value) => {
     setAnswers(prev => ({
@@ -46,13 +59,6 @@ const QuizForm = () => {
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'Location Permission',
-            message: 'This app needs access to your location.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
@@ -69,11 +75,7 @@ const QuizForm = () => {
         position => resolve(position),
         error => {
           console.warn('❌ Location error:', error);
-          if (fallback) {
-            fallback().then(resolve).catch(reject);
-          } else {
-            reject(error);
-          }
+          fallback ? fallback().then(resolve).catch(reject) : reject(error);
         },
         options,
       );
@@ -89,11 +91,7 @@ const QuizForm = () => {
 
     try {
       const position = await tryGetLocation(
-        {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 60000,
-        },
+        {enableHighAccuracy: false, timeout: 5000, maximumAge: 60000},
         () =>
           tryGetLocation({
             enableHighAccuracy: true,
@@ -125,15 +123,12 @@ const QuizForm = () => {
         },
       };
 
-      console.log(finalData);
-
       const resp = await axios.post(
         'https://tatvagyan.in/thinkzone/saveTchLocationSurvey',
         finalData,
       );
-      console.log('resp------->', resp);
 
-      console.log('✅ Final data:', finalData);
+      console.log('resp------->', resp);
       Alert.alert('Success', 'Quiz submitted with location!');
     } catch (err) {
       console.error('Location fetch failed:', err);
@@ -151,18 +146,10 @@ const QuizForm = () => {
 
     try {
       if (flag === 'camera') {
-        const cameraPermission = await PermissionsAndroid.request(
+        const permission = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.CAMERA,
-          {
-            title: 'Camera Permission',
-            message: 'App needs access to your camera.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
         );
-
-        if (cameraPermission !== PermissionsAndroid.RESULTS.GRANTED) {
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
           Alert.alert('Permission Denied', 'Camera permission not granted');
           setLoading(false);
           return;
@@ -175,13 +162,11 @@ const QuizForm = () => {
               width: 300,
               height: 400,
               cropping: true,
-              includeBase64: false,
             })
           : await ImagePicker.openPicker({
               width: 300,
               height: 400,
               cropping: true,
-              includeBase64: false,
             });
 
       if (!image) {
@@ -190,11 +175,7 @@ const QuizForm = () => {
       }
 
       const location = await tryGetLocation(
-        {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 60000,
-        },
+        {enableHighAccuracy: false, timeout: 5000, maximumAge: 60000},
         () =>
           tryGetLocation({
             enableHighAccuracy: true,
@@ -202,7 +183,6 @@ const QuizForm = () => {
             maximumAge: 10000,
           }),
       );
-      console.log('position', location);
 
       const {latitude, longitude} = location.coords;
       const {district, block, cluster} = await getDistrictAndBlock(
@@ -211,15 +191,6 @@ const QuizForm = () => {
       );
 
       setImageInfo({
-        uri: image.path,
-        latitude,
-        longitude,
-        district,
-        block,
-        cluster,
-      });
-
-      console.log('📸 Image with location:', {
         uri: image.path,
         latitude,
         longitude,
@@ -236,7 +207,7 @@ const QuizForm = () => {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1, backgroundColor: colors.background}}>
       <SafeAreaView style={{flex: 1}}>
         <BottomSheet modalRef={modalRef} modalHeight={modalHeight}>
           <View style={styles.modalContainer}>
@@ -246,7 +217,6 @@ const QuizForm = () => {
               <Feather name="camera" size={30} color="#2980b9" />
               <Text style={styles.modalButtonText}>Take Picture</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={() => handleSelection('gallery')}
               style={styles.modalButtonContainer}>
@@ -256,12 +226,16 @@ const QuizForm = () => {
           </View>
         </BottomSheet>
 
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>📝 Teacher Quiz Form</Text>
+        <ScrollView contentContainerStyle={[styles.container]}>
+          <Text style={[styles.title, {color: colors.text}]}>
+            📝 Teacher Quiz Form
+          </Text>
 
           {sampleQuestions.map((q, index) => (
-            <View key={q.questionId} style={styles.questionCard}>
-              <Text style={styles.questionText}>
+            <View
+              key={q.questionId}
+              style={[styles.questionCard, {backgroundColor: colors.card}]}>
+              <Text style={[styles.questionText, {color: colors.subText}]}>
                 {index + 1}. {q.questionName}
               </Text>
               <View style={styles.optionsContainer}>
@@ -285,34 +259,41 @@ const QuizForm = () => {
             </View>
           ))}
 
-          <Pressable style={styles.imageButton} onPress={handleOpenBottomSheet}>
+          <Pressable
+            style={[
+              styles.imageButton,
+              {backgroundColor: colors.imageButtonBg},
+            ]}
+            onPress={handleOpenBottomSheet}>
             <Text style={styles.submitButtonText}>
               📷 Capture or Select Image
             </Text>
           </Pressable>
 
           {imageInfo && (
-            <View style={styles.imageContainer}>
+            <View
+              style={[styles.imageContainer, {backgroundColor: colors.card}]}>
               <Image
                 source={{uri: imageInfo.uri}}
                 style={styles.previewImage}
               />
               <View style={styles.imageMeta}>
-                <Text style={styles.metaText}>
+                <Text style={[styles.metaText, {color: colors.text}]}>
                   📍 Lat: {imageInfo.latitude}
                 </Text>
-                <Text style={styles.metaText}>
+                <Text style={[styles.metaText, {color: colors.text}]}>
                   📍 Long: {imageInfo.longitude}
                 </Text>
-                <Text style={styles.metaText}>
-                  🗺 Location: {imageInfo.district}, {imageInfo.block},{' '}
-                  {imageInfo.cluster}
+                <Text style={[styles.metaText, {color: colors.text}]}>
+                  🗺 {imageInfo.district}, {imageInfo.block}, {imageInfo.cluster}
                 </Text>
               </View>
             </View>
           )}
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
+          <Pressable
+            style={[styles.submitButton, {backgroundColor: colors.buttonBg}]}
+            onPress={handleSubmit}>
             <Text style={styles.submitButtonText}>📤 Submit Quiz</Text>
           </Pressable>
         </ScrollView>
@@ -326,36 +307,32 @@ export default QuizForm;
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: '#f4f6f8',
-    top: 20,
+    paddingBottom: 40,
+    marginTop: 50,
   },
   modalContainer: {
-    height: window.WindowHeigth * 0.3,
-    backgroundColor: '#ffffff',
-    elevation: 5,
     flex: 1,
     justifyContent: 'space-evenly',
     alignItems: 'center',
     flexDirection: 'row',
+    backgroundColor: '#ffffff',
   },
   modalButtonContainer: {
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     height: 60,
   },
   modalButtonText: {
     fontSize: 13,
-    color: '#000000',
+    color: '#000',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#2c3e50',
   },
   questionCard: {
-    backgroundColor: '#ffffff',
     padding: 15,
     marginBottom: 15,
     borderRadius: 10,
@@ -368,7 +345,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#34495e',
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -393,14 +369,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   submitButton: {
-    backgroundColor: '#2980b9',
     borderRadius: 10,
     paddingVertical: 15,
     marginTop: 20,
     alignItems: 'center',
   },
   imageButton: {
-    backgroundColor: '#27ae60',
     borderRadius: 10,
     paddingVertical: 15,
     marginTop: 10,
@@ -414,7 +388,6 @@ const styles = StyleSheet.create({
   imageContainer: {
     marginTop: 20,
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 10,
     elevation: 3,
@@ -430,6 +403,5 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
-    color: '#2c3e50',
   },
 });
