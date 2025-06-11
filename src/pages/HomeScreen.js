@@ -6,18 +6,25 @@ import {
   StyleSheet,
   StatusBar,
   Image,
+  Dimensions,
 } from 'react-native';
+
+const {width, height} = Dimensions.get('window');
 
 const HomeScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3E8EDE" />
+
       <Image
-        style={{top: -100, width: 120, height: 120}}
+        style={styles.logo}
         source={require('../assets/img/new_logo.png')}
+        resizeMode="contain"
       />
+
       <Text style={styles.title}>Welcome to</Text>
       <Text style={styles.appName}>Thinkzone Support App</Text>
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('About')}>
@@ -30,34 +37,38 @@ const HomeScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3E8EDE', // Thinkzone primary-like blue
+    backgroundColor: '#3E8EDE',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
   },
+  logo: {
+    width: width * 0.3,
+    height: width * 0.3,
+    marginBottom: height * 0.05,
+  },
   title: {
-    fontSize: 22,
+    fontSize: width * 0.05,
     color: '#fff',
     fontWeight: '300',
     marginBottom: 5,
   },
   appName: {
-    fontSize: 30,
+    fontSize: width * 0.07,
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 40,
+    marginBottom: height * 0.05,
   },
   button: {
     backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+    paddingVertical: height * 0.015,
+    paddingHorizontal: width * 0.1,
     borderRadius: 25,
     elevation: 6,
-    top: 30,
   },
   buttonText: {
     color: '#3E8EDE',
-    fontSize: 18,
+    fontSize: width * 0.045,
     fontWeight: '600',
   },
 });
