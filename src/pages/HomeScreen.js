@@ -5,12 +5,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  Image,
 } from 'react-native';
 
 const HomeScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3E8EDE" />
+      <Image
+        style={{top: -100, width: 120, height: 120}}
+        source={require('../assets/img/new_logo.png')}
+      />
       <Text style={styles.title}>Welcome to</Text>
       <Text style={styles.appName}>Thinkzone Support App</Text>
       <TouchableOpacity
@@ -47,7 +52,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 25,
-    elevation: 4,
+    elevation: 6,
   },
   buttonText: {
     color: '#3E8EDE',

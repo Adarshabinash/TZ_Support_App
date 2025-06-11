@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: {width: 0, height: 5},
     elevation: 8,
+    top: 100,
   },
   title: {
     fontSize: 28,
@@ -149,6 +150,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#222',
     marginBottom: 12,
+    borderColor: 'black',
+    borderWidth: 0.2,
   },
   error: {
     color: '#d00',
