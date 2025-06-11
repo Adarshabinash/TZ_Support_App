@@ -73,7 +73,7 @@ const AboutScreen = ({navigation}) => {
 
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="UserID"
             placeholderTextColor="#888"
             value={userId}
             onChangeText={setUserId}
