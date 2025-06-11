@@ -1,21 +1,59 @@
 import React from 'react';
-import {View, Text, Button, StyleSheet} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+} from 'react-native';
 
 const HomeScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Home Screen</Text>
-      <Button
-        title="Go to About"
-        onPress={() => navigation.navigate('About')}
-      />
+      <StatusBar barStyle="light-content" backgroundColor="#3E8EDE" />
+      <Text style={styles.title}>Welcome to</Text>
+      <Text style={styles.appName}>Thinkzone Support App</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('About')}>
+        <Text style={styles.buttonText}>Go to Login</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1, alignItems: 'center', justifyContent: 'center'},
-  heading: {fontSize: 24, marginBottom: 20},
+  container: {
+    flex: 1,
+    backgroundColor: '#3E8EDE', // Thinkzone primary-like blue
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    color: '#fff',
+    fontWeight: '300',
+    marginBottom: 5,
+  },
+  appName: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 40,
+  },
+  button: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    elevation: 4,
+  },
+  buttonText: {
+    color: '#3E8EDE',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
 export default HomeScreen;
