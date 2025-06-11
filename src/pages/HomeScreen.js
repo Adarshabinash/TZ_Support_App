@@ -11,6 +11,7 @@ import {
   ImageBackground,
   Linking,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import {
   ScaledSheet,
@@ -18,6 +19,8 @@ import {
   scale,
   verticalScale,
 } from 'react-native-size-matters';
+
+const {width, height} = Dimensions.get('window');
 
 const HomeScreen = ({navigation}) => {
   const scaleValue = new Animated.Value(0);
@@ -53,6 +56,7 @@ const HomeScreen = ({navigation}) => {
       <ImageBackground
         source={require('../assets/img/homepagebg.jpg')}
         style={styles.backgroundImage}
+        resizeMode="cover"
         blurRadius={2}>
         <View style={styles.overlay} />
         <View style={styles.circle1} />
@@ -84,7 +88,7 @@ const HomeScreen = ({navigation}) => {
             ]}>
             <Text style={styles.title}>Welcome to</Text>
             <Text style={styles.appName}>Thinkzone Support App</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.subtitle} numberOfLines={3}>
               Empowering educators and students through innovative technology
             </Text>
           </Animated.View>
@@ -153,7 +157,6 @@ const styles = ScaledSheet.create({
   backgroundImage: {
     flex: 1,
     width: '100%',
-    height: '100%',
     justifyContent: 'center',
   },
   overlay: {
@@ -163,68 +166,71 @@ const styles = ScaledSheet.create({
   contentContainer: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: '20@s',
+    paddingHorizontal: width < 350 ? '10@s' : '20@s', // Adjust padding for smaller devices
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: '30@vs',
   },
   logoContainer: {
-    marginBottom: '25@vs',
+    marginBottom: height < 600 ? '15@vs' : '25@vs', // Adjust margin for smaller screens
     alignItems: 'center',
   },
   logo: {
-    width: '95@s',
-    height: '95@s',
+    width: width < 350 ? '80@s' : '95@s', // Smaller logo on smaller devices
+    height: width < 350 ? '80@s' : '95@s',
     borderRadius: '60@s',
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   textContainer: {
     alignItems: 'center',
-    marginBottom: '20@vs',
+    marginBottom: height < 600 ? '15@vs' : '20@vs',
+    width: '100%',
   },
   title: {
-    fontSize: '18@ms',
+    fontSize: width < 350 ? '16@ms' : '18@ms', // Adjust font size for smaller devices
     color: 'rgba(255,255,255,0.9)',
     fontFamily: 'Roboto-Light',
     marginBottom: 5,
     textAlign: 'center',
   },
   appName: {
-    fontSize: '24@ms',
+    fontSize: width < 350 ? '20@ms' : '24@ms',
     color: '#fff',
     fontFamily: 'Roboto-Bold',
-    marginBottom: 10,
+    marginBottom: height < 600 ? 5 : 10,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: '14@ms',
+    fontSize: width < 350 ? '12@ms' : '14@ms',
     color: 'rgba(255,255,255,0.85)',
     fontFamily: 'Roboto-Regular',
     textAlign: 'center',
     maxWidth: '90%',
-    lineHeight: '18@vs',
+    lineHeight: height < 600 ? '16@vs' : '18@vs',
+    paddingHorizontal: width < 350 ? '5@s' : 0,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
-    marginTop: '10@vs',
+    marginTop: height < 600 ? '5@vs' : '10@vs',
   },
   primaryButton: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: '12@vs',
+    paddingVertical: height < 600 ? '10@vs' : '12@vs',
     paddingHorizontal: '20@s',
     borderRadius: '30@s',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
-    marginTop: '20@vs',
+    marginTop: height < 600 ? '15@vs' : '20@vs',
     width: '90%',
     maxWidth: 300,
+    minHeight: height < 600 ? verticalScale(45) : verticalScale(50),
   },
   primaryButtonText: {
     color: '#2D3748',
-    fontSize: '16@ms',
+    fontSize: width < 350 ? '14@ms' : '16@ms',
     fontFamily: 'Roboto-Medium',
     letterSpacing: 0.3,
   },
@@ -241,7 +247,7 @@ const styles = ScaledSheet.create({
     height: '30@s',
   },
   footer: {
-    paddingHorizontal: '15@s',
+    paddingHorizontal: width < 350 ? '10@s' : '15@s',
     paddingVertical: '10@vs',
     backgroundColor: '#fff',
     shadowColor: '#000',
@@ -255,12 +261,13 @@ const styles = ScaledSheet.create({
     marginTop: '10@vs',
     borderWidth: 0.5,
     borderColor: '#ccc',
+    marginBottom: height < 600 ? '5@vs' : '10@vs',
   },
   footerText: {
-    fontSize: '13@ms',
+    fontSize: width < 350 ? '11@ms' : '13@ms',
     color: '#555',
     textAlign: 'center',
-    lineHeight: '18@vs',
+    lineHeight: height < 600 ? '16@vs' : '18@vs',
   },
   linkText: {
     color: '#007BFF',
@@ -269,24 +276,24 @@ const styles = ScaledSheet.create({
   },
   footerSubText: {
     marginTop: '5@vs',
-    fontSize: '12@ms',
+    fontSize: width < 350 ? '10@ms' : '12@ms',
     color: '#777',
     textAlign: 'center',
   },
   circle1: {
     position: 'absolute',
-    width: '250@s',
-    height: '250@s',
-    borderRadius: '125@s',
+    width: width < 350 ? '200@s' : '250@s',
+    height: width < 350 ? '200@s' : '250@s',
+    borderRadius: width < 350 ? '100@s' : '125@s',
     backgroundColor: 'rgba(255,255,255,0.03)',
     top: '-60@s',
     right: '-80@s',
   },
   circle2: {
     position: 'absolute',
-    width: '180@s',
-    height: '180@s',
-    borderRadius: '90@s',
+    width: width < 350 ? '150@s' : '180@s',
+    height: width < 350 ? '150@s' : '180@s',
+    borderRadius: width < 350 ? '75@s' : '90@s',
     backgroundColor: 'rgba(255,255,255,0.02)',
     bottom: '-70@s',
     left: '-70@s',
