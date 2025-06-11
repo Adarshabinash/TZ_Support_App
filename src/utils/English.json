@@ -1,0 +1,33 @@
+{
+  "translation": {
+    "performane": "Dashboard",
+    "teachers": "Teachers",
+    "students": "Students",
+    "baseline": "Student Baseline",
+    "endline": "Student Endline",
+    "dropout": "Drop Out",
+    "knowmore": "Know More",
+    "dropercentage": "Drop out % of fellows",
+    "documents": "Documents",
+    "schedule": "Schedule",
+    "about": "About Us",
+    "password_description": "You can generate NSDC password here.",
+    "passcode_description": "You can generate your Passcode here.",
+    "home_str1": "You will find  documnets related to our work for your help.",
+    "home_str2": "You can add you'r future work details and keep track of theme you will notify you when its time",
+    "home_str3": "ThinkZone is a social enterprise that works towards improving the learning outcomes of children from under-resourced communities.",
+    "directories": "Directories",
+    "directories_str": "Here are some list of directories where you will find documnets related to our work for your help.",
+    "directories_str1": "Here are some list of documents where you will find details related to our work for your help.",
+    "take_picture": "Take a Picture",
+    "chose_gallery": "Chose From Gallery",
+    "name_error": "Name can't be empty please enter your name",
+    "phone_error": "Please enter a valid phone number",
+    "gender_error": "Gender can't be empty please choose your gender",
+    "district_error": "District name can't be empty please choose your district",
+    "block_error": "Block name can't be empty please choose your block",
+    "edit_profile": "edit profile",
+    "change_language": "Change Language",
+    "logout": "Log Out"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "translation": {
+    "performane": "ପ୍ରଦର୍ଶନ",
+    "teachers": "ଶିକ୍ଷକ",
+    "students": "ଶିକ୍ଷାର୍ଥୀ",
+    "baseline": "ବେସ୍ ଲାଇନ୍",
+    "dropout": "ଡ୍ରପ ଆଉଟ",
+    "knowmore": "ଅଧିକ ଜାଣନ୍ତୁ",
+    "dropercentage": "ଫେଲୋ ମାନଙ୍କର ଡ୍ରପ ଆଉଟ %",
+    "documents": "ଡକ୍ୟୁମେଣ୍ଟ୍",
+    "schedule": "କାର୍ଯ୍ୟସୂଚୀ",
+    "about": "ଆମ ବିଷୟରେ",
+    "home_str1": "ତୁମର ସାହାଯ୍ୟ ପାଇଁ ତୁମେ ଆମର କାର୍ଯ୍ୟ ସହିତ ଜଡିତ ଡକ୍ୟୁମେଣ୍ଟ୍ ପାଇପାରିବ ।",
+    "home_str2": "ତୁମେ ଆଗକୁ କରିବାକୁ ଥିବା କାମର ତଥ୍ୟ ଏଠାରେ ରଖିପାରିବ ଏବଂ ଯାହାର ସୂଚନା ତୁମେ ନିର୍ଦ୍ଧିଷ୍ଟ ସମୟରେ ପାଇ ପାରିବ",
+    "home_str3": "ଥିଙ୍କଜୋନ୍ ହେଉଛି ଏକ ସାମାଜିକ ଉଦ୍ୟୋଗ ଯାହା ନିମ୍ନ-ସମ୍ବଳିତ ସମ୍ପ୍ରଦାୟର ପିଲାମାନଙ୍କର ଶିକ୍ଷଣ ଫଳାଫଳକୁ ଉନ୍ନତ କରିବା ଦିଗରେ କାର୍ଯ୍ୟ କରେ |",
+    "directories": "Directories",
+    "directories_str": "Here are some list of directories where you will find documnets related to our work for your help.",
+    "directories_str1": "Here are some list of documents where you will find details related to our work for your help."
+  }
+}
