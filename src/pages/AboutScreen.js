@@ -68,7 +68,7 @@ const AboutScreen = ({navigation}) => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Animated.View
           style={[styles.card, {transform: [{translateY: slideAnim}]}]}>
-          <Text style={styles.title}>Welcome</Text>
+          {/* <Text style={styles.title}>Welcome</Text> */}
           <Text style={styles.subtitle}>Sign in to your account</Text>
 
           <TextInput
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 19,
     color: '#666',
     marginBottom: 24,
     textAlign: 'center',
