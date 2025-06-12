@@ -13,7 +13,7 @@ import {
   StatusBar,
 } from 'react-native';
 
-const AboutScreen = ({navigation}) => {
+const LoginPage = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
@@ -156,7 +156,7 @@ const AboutScreen = ({navigation}) => {
   );
 };
 
-export default AboutScreen;
+export default LoginPage;
 
 const styles = StyleSheet.create({
   background: {

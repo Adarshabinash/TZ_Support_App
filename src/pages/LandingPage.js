@@ -22,7 +22,7 @@ import {
 
 const {width, height} = Dimensions.get('window');
 
-const HomeScreen = ({navigation}) => {
+const LandingPage = ({navigation}) => {
   const scaleValue = new Animated.Value(0);
   const fadeValue = new Animated.Value(0);
   const slideUpValue = new Animated.Value(verticalScale(20));
@@ -103,9 +103,9 @@ const HomeScreen = ({navigation}) => {
             ]}>
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={() => navigation.navigate('About')}
+              onPress={() => navigation.navigate('Login')}
               activeOpacity={0.7}>
-              <Text style={styles.primaryButtonText}>Login</Text>
+              <Text style={styles.primaryButtonText}>Start</Text>
               <View style={styles.buttonIcon}>
                 <Image
                   source={require('../assets/Image/arrow-square-right.png')}
@@ -166,17 +166,17 @@ const styles = ScaledSheet.create({
   contentContainer: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: width < 350 ? '10@s' : '20@s', // Adjust padding for smaller devices
+    paddingHorizontal: width < 350 ? '10@s' : '20@s', 
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: '30@vs',
   },
   logoContainer: {
-    marginBottom: height < 600 ? '15@vs' : '25@vs', // Adjust margin for smaller screens
+    marginBottom: height < 600 ? '15@vs' : '25@vs',
     alignItems: 'center',
   },
   logo: {
-    width: width < 350 ? '80@s' : '95@s', // Smaller logo on smaller devices
+    width: width < 350 ? '80@s' : '95@s',
     height: width < 350 ? '80@s' : '95@s',
     borderRadius: '60@s',
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -187,7 +187,7 @@ const styles = ScaledSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: width < 350 ? '16@ms' : '18@ms', // Adjust font size for smaller devices
+    fontSize: width < 350 ? '16@ms' : '18@ms',
     color: 'rgba(255,255,255,0.9)',
     fontFamily: 'Roboto-Light',
     marginBottom: 5,
@@ -233,6 +233,7 @@ const styles = ScaledSheet.create({
     fontSize: width < 350 ? '14@ms' : '16@ms',
     fontFamily: 'Roboto-Medium',
     letterSpacing: 0.3,
+    fontWeight: 700,
   },
   buttonIcon: {
     marginLeft: '12@s',
@@ -300,4 +301,4 @@ const styles = ScaledSheet.create({
   },
 });
 
-export default HomeScreen;
+export default LandingPage;

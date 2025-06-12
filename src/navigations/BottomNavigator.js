@@ -1,7 +1,7 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {enableScreens} from 'react-native-screens';
 import TakeQuiz from '../pages/TakeQuiz';
-import HomeScreen from '../pages/HomeScreen';
+import HomeScreen from '../pages/LandingPage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 enableScreens();

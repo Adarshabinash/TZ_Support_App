@@ -1,10 +1,10 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import HomeScreen from '../pages/HomeScreen';
-import AboutScreen from '../pages/AboutScreen';
 import TakeQuiz from '../pages/TakeQuiz';
 import {enableScreens} from 'react-native-screens';
 import BottomTabsNavigator from './BottomNavigator';
+import LandingPage from '../pages/LandingPage';
+import LoginPage from '../pages/LoginPage';
 
 enableScreens();
 
@@ -19,13 +19,13 @@ const StackScreen = () => {
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="Home"
-        component={HomeScreen}
+        name="Landing"
+        component={LandingPage}
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="About"
-        component={AboutScreen}
+        name="Login"
+        component={LoginPage}
         options={{headerShown: false}}
       />
       <Stack.Screen
