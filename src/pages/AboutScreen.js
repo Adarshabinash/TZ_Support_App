@@ -66,7 +66,7 @@ const AboutScreen = ({navigation}) => {
 
   const handleSignIn = () => {
     // if (validate()) {
-    navigation.navigate('Contact');
+    navigation.navigate('TakeQuiz');
     // }
   };
 

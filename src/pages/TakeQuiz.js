@@ -28,7 +28,7 @@ const sampleQuestions = [
   {questionId: 'q3', questionName: 'Can React Native build iOS apps?'},
 ];
 
-const QuizForm = () => {
+const TakeQuiz = () => {
   const modalRef = useRef(null);
   const modalHeight = window.WindowHeigth * 0.3;
   const [answers, setAnswers] = useState({});
@@ -302,7 +302,7 @@ const QuizForm = () => {
   );
 };
 
-export default QuizForm;
+export default TakeQuiz;
 
 const styles = StyleSheet.create({
   container: {

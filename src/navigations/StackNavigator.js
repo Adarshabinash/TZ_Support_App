@@ -2,8 +2,9 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeScreen from '../pages/HomeScreen';
 import AboutScreen from '../pages/AboutScreen';
-import ContactScreen from '../pages/ContactScreen';
+import TakeQuiz from '../pages/TakeQuiz';
 import {enableScreens} from 'react-native-screens';
+import BottomTabsNavigator from './BottomNavigator';
 
 enableScreens();
 
@@ -11,7 +12,12 @@ const Stack = createNativeStackNavigator();
 
 const StackScreen = () => {
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="BottomScreens">
+      <Stack.Screen
+        name="BottomScreens"
+        component={BottomTabsNavigator}
+        options={{headerShown: false}}
+      />
       <Stack.Screen
         name="Home"
         component={HomeScreen}
@@ -23,8 +29,8 @@ const StackScreen = () => {
         options={{headerShown: false}}
       />
       <Stack.Screen
-        name="Contact"
-        component={ContactScreen}
+        name="TakeQuiz"
+        component={TakeQuiz}
         options={{headerShown: false}}
       />
     </Stack.Navigator>
