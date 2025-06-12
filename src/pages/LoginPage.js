@@ -1,4 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
+import axios from 'axios';
+import {ActivityIndicator} from 'react-native';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ const LoginPage = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
+  const [loading, setLoading] = useState(false);
+
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
@@ -47,16 +51,10 @@ const LoginPage = ({navigation}) => {
     if (!userId) {
       newErrors.userId = 'User ID is required';
       valid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userId)) {
-      newErrors.userId = 'Enter a valid email address';
-      valid = false;
     }
 
     if (!password) {
       newErrors.password = 'Password is required';
-      valid = false;
-    } else if (password.length < 6) {
-      newErrors.password = 'Minimum 6 characters required';
       valid = false;
     }
 
@@ -64,9 +62,48 @@ const LoginPage = ({navigation}) => {
     return valid;
   };
 
-  const handleSignIn = () => {
-    if (validate()) {
-      navigation.navigate('TakeQuiz');
+  const handleSignIn = async () => {
+    const correctId = 'tch_1122';
+    const correctPassword = 'Sahoo@2025#';
+
+    const isValid = validate();
+    if (!isValid) return;
+
+    if (userId !== correctId || password !== correctPassword) {
+      setErrors(prev => ({
+        ...prev,
+        password: 'Invalid ID or password',
+      }));
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        'https://tatvagyan.in/thinkzone/authTeacher',
+        {
+          teacherId: userId,
+          password: password,
+        },
+      );
+
+      if (response.status === 200 && response.data.msg === 'login success') {
+        navigation.navigate('TakeQuiz');
+      } else {
+        setErrors(prev => ({
+          ...prev,
+          password: 'Invalid credentials from server',
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+      setErrors(prev => ({
+        ...prev,
+        password: 'Something went wrong. Please try again.',
+      }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,8 +194,13 @@ const LoginPage = ({navigation}) => {
 
           <TouchableOpacity
             style={[styles.button, {backgroundColor: colors.button}]}
-            onPress={handleSignIn}>
-            <Text style={styles.buttonText}>Sign In</Text>
+            onPress={handleSignIn}
+            disabled={loading}>
+            {loading ? (
+              <Text style={styles.buttonText}>Signing In...</Text>
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </Animated.View>
       </KeyboardAvoidingView>
