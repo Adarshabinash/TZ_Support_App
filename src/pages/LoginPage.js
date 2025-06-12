@@ -65,9 +65,9 @@ const LoginPage = ({navigation}) => {
   };
 
   const handleSignIn = () => {
-    // if (validate()) {
-    navigation.navigate('TakeQuiz');
-    // }
+    if (validate()) {
+      navigation.navigate('TakeQuiz');
+    }
   };
 
   return (
@@ -114,7 +114,12 @@ const LoginPage = ({navigation}) => {
             placeholder="User ID"
             placeholderTextColor={colors.placeholder}
             value={userId}
-            onChangeText={setUserId}
+            onChangeText={text => {
+              setUserId(text);
+              if (errors.userId) {
+                setErrors(prev => ({...prev, userId: ''}));
+              }
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -136,7 +141,12 @@ const LoginPage = ({navigation}) => {
             placeholder="Password"
             placeholderTextColor={colors.placeholder}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={text => {
+              setPassword(text);
+              if (errors.password) {
+                setErrors(prev => ({...prev, password: ''}));
+              }
+            }}
             secureTextEntry
           />
           {errors.password ? (
