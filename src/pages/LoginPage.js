@@ -1,4 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -64,9 +65,10 @@ const LoginPage = ({navigation}) => {
     return valid;
   };
 
-  const handleSignIn = () => {
-    // if (validate()) {
+  const handleSignIn = async () => {
+    // if (userId && password) {
     navigation.navigate('TakeQuiz');
+    // await AsyncStorage.setItem('isLoggedIn', 'true');
     // }
   };
 

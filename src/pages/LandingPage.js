@@ -166,7 +166,7 @@ const styles = ScaledSheet.create({
   contentContainer: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: width < 350 ? '10@s' : '20@s', 
+    paddingHorizontal: width < 350 ? '10@s' : '20@s',
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: '30@vs',

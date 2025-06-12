@@ -23,7 +23,7 @@ function BottomTabsNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        headerShown: false, // hides header if needed
+        headerShown: false,
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
       })}>
