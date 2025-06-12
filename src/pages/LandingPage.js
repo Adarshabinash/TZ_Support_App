@@ -105,7 +105,7 @@ const LandingPage = ({navigation}) => {
               style={styles.primaryButton}
               onPress={() => navigation.navigate('Login')}
               activeOpacity={0.7}>
-              <Text style={styles.primaryButtonText}>Start</Text>
+              <Text style={styles.primaryButtonText}>START</Text>
               <View style={styles.buttonIcon}>
                 <Image
                   source={require('../assets/Image/arrow-square-right.png')}
@@ -166,7 +166,7 @@ const styles = ScaledSheet.create({
   contentContainer: {
     flex: 1,
     width: '100%',
-    paddingHorizontal: width < 350 ? '10@s' : '20@s', 
+    paddingHorizontal: width < 350 ? '10@s' : '20@s',
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: '30@vs',
@@ -224,7 +224,7 @@ const styles = ScaledSheet.create({
     justifyContent: 'center',
     elevation: 6,
     marginTop: height < 600 ? '15@vs' : '20@vs',
-    width: '90%',
+    width: '50%',
     maxWidth: 300,
     minHeight: height < 600 ? verticalScale(45) : verticalScale(50),
   },
@@ -233,7 +233,7 @@ const styles = ScaledSheet.create({
     fontSize: width < 350 ? '14@ms' : '16@ms',
     fontFamily: 'Roboto-Medium',
     letterSpacing: 0.3,
-    fontWeight: 700,
+    fontWeight: 550,
   },
   buttonIcon: {
     marginLeft: '12@s',
