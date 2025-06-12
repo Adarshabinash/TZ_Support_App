@@ -87,7 +87,7 @@ const LandingPage = ({navigation}) => {
               },
             ]}>
             <Text style={styles.title}>Welcome to</Text>
-            <Text style={styles.appName}>Thinkzone Support App</Text>
+            <Text style={styles.appName}>Thinkzone Support</Text>
             <Text style={styles.subtitle} numberOfLines={3}>
               Empowering educators and students through innovative technology
             </Text>
