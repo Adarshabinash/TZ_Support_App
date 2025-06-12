@@ -73,7 +73,7 @@ const LoginPage = ({navigation}) => {
     if (userId !== correctId || password !== correctPassword) {
       Alert.alert(
         'Oops!',
-        'Looks like you entered the wrong ID or password.\nDouble-check and try again! 💛',
+        'Looks like you entered the wrong ID or password.\nDouble-check and try again!',
       );
       return;
     }
