@@ -1,6 +1,6 @@
 import React, {useState, useRef, useEffect} from 'react';
 import axios from 'axios';
-import {ActivityIndicator} from 'react-native';
+import {Alert} from 'react-native';
 import {
   View,
   Text,
@@ -70,10 +70,10 @@ const LoginPage = ({navigation}) => {
     if (!isValid) return;
 
     if (userId !== correctId || password !== correctPassword) {
-      setErrors(prev => ({
-        ...prev,
-        password: 'Invalid ID or password',
-      }));
+      Alert.alert(
+        'Oops!',
+        'Looks like you entered the wrong ID or password.\nDouble-check and try again! 💛',
+      );
       return;
     }
 
@@ -91,17 +91,11 @@ const LoginPage = ({navigation}) => {
       if (response.status === 200 && response.data.msg === 'login success') {
         navigation.navigate('TakeQuiz');
       } else {
-        setErrors(prev => ({
-          ...prev,
-          password: 'Invalid credentials from server',
-        }));
+        Alert.alert('Login Failed', 'Invalid credentials from server');
       }
     } catch (error) {
       console.error(error);
-      setErrors(prev => ({
-        ...prev,
-        password: 'Something went wrong. Please try again.',
-      }));
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
