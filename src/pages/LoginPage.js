@@ -1,5 +1,7 @@
 import React, {useState, useRef, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {Alert} from 'react-native';
 import {
   View,
   Text,
@@ -18,6 +20,8 @@ const LoginPage = ({navigation}) => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
+  const [loading, setLoading] = useState(false);
+
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
@@ -48,16 +52,10 @@ const LoginPage = ({navigation}) => {
     if (!userId) {
       newErrors.userId = 'User ID is required';
       valid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userId)) {
-      newErrors.userId = 'Enter a valid email address';
-      valid = false;
     }
 
     if (!password) {
       newErrors.password = 'Password is required';
-      valid = false;
-    } else if (password.length < 6) {
-      newErrors.password = 'Minimum 6 characters required';
       valid = false;
     }
 
@@ -66,10 +64,42 @@ const LoginPage = ({navigation}) => {
   };
 
   const handleSignIn = async () => {
-    // if (userId && password) {
-    navigation.navigate('TakeQuiz');
-    // await AsyncStorage.setItem('isLoggedIn', 'true');
-    // }
+    const correctId = 'tch_1122';
+    const correctPassword = 'Sahoo@2025#';
+
+    const isValid = validate();
+    if (!isValid) return;
+
+    if (userId !== correctId || password !== correctPassword) {
+      Alert.alert(
+        'Oops!',
+        'Looks like you entered the wrong ID or password.\nDouble-check and try again! 💛',
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        'https://tatvagyan.in/thinkzone/authTeacher',
+        {
+          teacherId: userId,
+          password: password,
+        },
+      );
+
+      if (response.status === 200 && response.data.msg === 'login success') {
+        navigation.navigate('TakeQuiz');
+      } else {
+        Alert.alert('Login Failed', 'Invalid credentials from server');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -116,7 +146,12 @@ const LoginPage = ({navigation}) => {
             placeholder="User ID"
             placeholderTextColor={colors.placeholder}
             value={userId}
-            onChangeText={setUserId}
+            onChangeText={text => {
+              setUserId(text);
+              if (errors.userId) {
+                setErrors(prev => ({...prev, userId: ''}));
+              }
+            }}
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -138,7 +173,12 @@ const LoginPage = ({navigation}) => {
             placeholder="Password"
             placeholderTextColor={colors.placeholder}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={text => {
+              setPassword(text);
+              if (errors.password) {
+                setErrors(prev => ({...prev, password: ''}));
+              }
+            }}
             secureTextEntry
           />
           {errors.password ? (
@@ -149,8 +189,13 @@ const LoginPage = ({navigation}) => {
 
           <TouchableOpacity
             style={[styles.button, {backgroundColor: colors.button}]}
-            onPress={handleSignIn}>
-            <Text style={styles.buttonText}>Sign In</Text>
+            onPress={handleSignIn}
+            disabled={loading}>
+            {loading ? (
+              <Text style={styles.buttonText}>Signing In...</Text>
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </Animated.View>
       </KeyboardAvoidingView>
