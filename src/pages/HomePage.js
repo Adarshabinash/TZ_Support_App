@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,6 +8,28 @@ import {
 } from 'react-native';
 
 const HomePage = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const value = await AsyncStorage.getItem('isLoggedIn');
+        console.log('AsyncStorage isLoggedIn value:', value);
+        setIsLoggedIn(value === 'true');
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        setIsLoggedIn(false);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  if (isLoggedIn === null) {
+    return null;
+  }
+
+  console.log('isLoggedIn in homepage---------->', isLoggedIn);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.greeting}>Hello, Adarsh 👋</Text>

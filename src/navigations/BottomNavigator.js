@@ -3,6 +3,8 @@ import {enableScreens} from 'react-native-screens';
 import TakeQuiz from '../pages/TakeQuiz';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomePage from '../pages/HomePage';
+import ProfilePage from '../pages/ProfilePage';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 enableScreens();
 
@@ -14,12 +16,16 @@ function BottomTabsNavigator() {
       screenOptions={({route}) => ({
         tabBarIcon: ({color, size}) => {
           let iconName;
+
           if (route.name === 'Home') {
-            iconName = 'home-outline';
+            iconName = 'home'; // ✅ valid in AntDesign
           } else if (route.name === 'TakeQuiz') {
-            iconName = 'book-outline';
+            iconName = 'book'; // ✅ valid
+          } else if (route.name === 'Profile') {
+            iconName = 'user'; // ✅ use 'user' instead of 'profile'
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+
+          return <AntDesign name={iconName} size={size} color={color} />;
         },
         headerShown: false,
         tabBarActiveTintColor: '#007AFF',
@@ -27,6 +33,7 @@ function BottomTabsNavigator() {
       })}>
       <Tab.Screen name="Home" component={HomePage} />
       <Tab.Screen name="TakeQuiz" component={TakeQuiz} />
+      <Tab.Screen name="Profile" component={ProfilePage} />
     </Tab.Navigator>
   );
 }
