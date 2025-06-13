@@ -1,14 +1,85 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 
 const HomePage = () => {
   return (
-    <View>
-      <Text>HomePage</Text>
-    </View>
-  )
-}
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.greeting}>Hello, Adarsh 👋</Text>
+      <Text style={styles.subHeading}>Welcome back to your dashboard</Text>
 
-export default HomePage
+      <View style={styles.cardRow}>
+        <TouchableOpacity style={styles.card}>
+          <Text style={styles.cardTitle}>📊 Reports</Text>
+          <Text style={styles.cardText}>View your stats</Text>
+        </TouchableOpacity>
 
-const styles = StyleSheet.create({})
+        <TouchableOpacity style={styles.card}>
+          <Text style={styles.cardTitle}>👤 Profile</Text>
+          <Text style={styles.cardText}>Manage your info</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.cardRow}>
+        <TouchableOpacity style={styles.card}>
+          <Text style={styles.cardTitle}>⚙️ Settings</Text>
+          <Text style={styles.cardText}>App preferences</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card}>
+          <Text style={styles.cardTitle}>📝 Tasks</Text>
+          <Text style={styles.cardText}>Check your to-do</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+};
+
+export default HomePage;
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: '#f7f9fc',
+    flex: 1,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 6,
+    color: '#333',
+    top: 90,
+  },
+  subHeading: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    top: 90,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    top: 160,
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    width: '48%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+});

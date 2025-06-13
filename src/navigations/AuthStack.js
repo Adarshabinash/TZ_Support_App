@@ -1,29 +1,35 @@
-import {StyleSheet, Text, View, Button} from 'react-native';
 import React from 'react';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {enableScreens} from 'react-native-screens';
+import LandingPage from '../pages/LandingPage';
+import LoginPage from '../pages/LoginPage';
+import BottomTabsNavigator from './BottomNavigator';
 
-const AuthStack = ({navigation}) => {
-  const handleLogin = async () => {
-    await AsyncStorage.setItem('isLoggedIn', 'true');
-    navigation.replace('StackScreen');
-  };
+enableScreens();
 
-  const buttonPressOnLandingScreen=()=>{
+const Stack = createNativeStackNavigator();
 
-    navigation.naigate("")
-  }
-
+const AuthStack = () => {
   return (
-    <View style={styles.button}>
-      <Button title="Login" onPress={handleLogin} />
-    </View>
+    <Stack.Navigator initialRouteName="Landing">
+      <Stack.Screen
+        name="Landing"
+        component={LandingPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Home"
+        component={BottomTabsNavigator}
+        options={{headerShown: false}}
+        // initialParams={{setIsLoggedIn}}
+      />
+    </Stack.Navigator>
   );
 };
 
 export default AuthStack;
-
-const styles = StyleSheet.create({
-  button: {
-    margin: '20%',
-    width: '50%',
-  },
-});
