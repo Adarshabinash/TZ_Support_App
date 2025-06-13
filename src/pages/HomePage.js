@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   useColorScheme,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -40,6 +42,27 @@ const HomePage = () => {
   if (isLoggedIn === null) {
     return null;
   }
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+        {
+          text: 'Cancel',
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {text: 'YES', onPress: () => BackHandler.exitApp()},
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   console.log('isLoggedIn in homepage---------->', isLoggedIn);
 

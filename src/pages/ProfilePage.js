@@ -1,12 +1,33 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React from 'react';
-import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
+import React, {useEffect} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  BackHandler,
+  Alert,
+} from 'react-native';
 
 const ProfilePage = ({navigation}) => {
   const onLogOut = () => {
     AsyncStorage.removeItem('isLoggedIn');
     navigation.navigate('Landing');
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      navigation.goBack();
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <View style={styles.container}>

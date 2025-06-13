@@ -4,6 +4,7 @@ import {enableScreens} from 'react-native-screens';
 import BottomTabsNavigator from './BottomNavigator';
 import TakeQuiz from '../pages/TakeQuiz';
 import ProfilePage from '../pages/ProfilePage';
+import LandingPage from '../pages/LandingPage';
 
 enableScreens();
 
@@ -26,6 +27,11 @@ const StackScreen = ({setIsLoggedIn}) => {
       <Stack.Screen
         name="Profile"
         component={ProfilePage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="Landing"
+        component={LandingPage}
         options={{headerShown: false}}
       />
     </Stack.Navigator>
