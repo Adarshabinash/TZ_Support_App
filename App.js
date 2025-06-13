@@ -10,7 +10,7 @@ const App = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        await AsyncStorage.removeItem('isLoggedIn');
+        // await AsyncStorage.removeItem('isLoggedIn');
         const value = await AsyncStorage.getItem('isLoggedIn');
         console.log('AsyncStorage isLoggedIn value:', value);
         setIsLoggedIn(value === 'true');

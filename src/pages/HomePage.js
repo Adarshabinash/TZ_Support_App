@@ -5,10 +5,23 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
+  useColorScheme,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const scheme = useColorScheme();
+  const isDarkMode = scheme === 'dark';
+
+  var colors = {
+    background: isDarkMode ? '#282828' : '#f4f6f8',
+    card: isDarkMode ? '#1e1e1e' : '#ffffff',
+    text: isDarkMode ? '#ffffff' : '#2c3e50',
+    subText: isDarkMode ? '#cccccc' : '#34495e',
+    buttonBg: isDarkMode ? '#3498db' : '#2980b9',
+    imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
+  };
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -31,31 +44,69 @@ const HomePage = () => {
   console.log('isLoggedIn in homepage---------->', isLoggedIn);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.greeting}>Hello, Adarsh 👋</Text>
-      <Text style={styles.subHeading}>Welcome back to your dashboard</Text>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        {backgroundColor: colors.background},
+      ]}>
+      <Text style={[styles.greeting, {color: colors.text}]}>
+        Hello, Adarsh 👋
+      </Text>
+      <Text style={[styles.subHeading, {color: colors.text}]}>
+        Welcome back to your dashboard
+      </Text>
 
       <View style={styles.cardRow}>
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>📊 Reports</Text>
-          <Text style={styles.cardText}>View your stats</Text>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {backgroundColor: colors.background, borderColor: colors.text},
+          ]}>
+          <Text style={[styles.cardTitle, {color: colors.text}]}>
+            📊 Reports
+          </Text>
+          <Text style={[styles.cardText, {color: colors.text}]}>
+            View your stats
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>👤 Profile</Text>
-          <Text style={styles.cardText}>Manage your info</Text>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {backgroundColor: colors.background, borderColor: colors.text},
+          ]}>
+          <Text style={[styles.cardTitle, {color: colors.text}]}>
+            👤 Profile
+          </Text>
+          <Text style={[styles.cardText, {color: colors.text}]}>
+            Manage your info
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.cardRow}>
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>⚙️ Settings</Text>
-          <Text style={styles.cardText}>App preferences</Text>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {backgroundColor: colors.background, borderColor: colors.text},
+          ]}>
+          <Text style={[styles.cardTitle, {color: colors.text}]}>
+            ⚙️ Settings
+          </Text>
+          <Text style={[styles.cardText, {color: colors.text}]}>
+            App preferences
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.cardTitle}>📝 Tasks</Text>
-          <Text style={styles.cardText}>Check your to-do</Text>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {backgroundColor: colors.background, borderColor: colors.text},
+          ]}>
+          <Text style={[styles.cardTitle, {color: colors.text}]}>📝 Tasks</Text>
+          <Text style={[styles.cardText, {color: colors.text}]}>
+            Check your to-do
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -99,6 +150,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
   },
   cardTitle: {
     fontSize: 18,

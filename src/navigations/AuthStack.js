@@ -4,6 +4,7 @@ import {enableScreens} from 'react-native-screens';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import BottomTabsNavigator from './BottomNavigator';
+import ProfilePage from '../pages/ProfilePage';
 
 enableScreens();
 
@@ -28,6 +29,8 @@ const AuthStack = () => {
         options={{headerShown: false}}
         // initialParams={{setIsLoggedIn}}
       />
+
+      <Stack.Screen name="Profile" component={ProfilePage} />
     </Stack.Navigator>
   );
 };

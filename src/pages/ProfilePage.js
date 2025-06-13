@@ -1,7 +1,13 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React from 'react';
 import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 
-const ProfilePage = () => {
+const ProfilePage = ({navigation}) => {
+  const onLogOut = () => {
+    AsyncStorage.removeItem('isLoggedIn');
+    navigation.navigate('Landing');
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -13,7 +19,7 @@ const ProfilePage = () => {
       <Text style={styles.email}>adarsh@example.com</Text>
       <Text style={styles.phone}>+91 98765 43210</Text>
 
-      <TouchableOpacity style={styles.editButton}>
+      <TouchableOpacity style={styles.editButton} onPress={onLogOut}>
         <Text style={styles.editButtonText}>Log Out</Text>
       </TouchableOpacity>
     </View>
