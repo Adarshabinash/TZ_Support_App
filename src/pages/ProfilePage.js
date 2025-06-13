@@ -8,9 +8,23 @@ import {
   TouchableOpacity,
   BackHandler,
   Alert,
+  useColorScheme,
 } from 'react-native';
 
 const ProfilePage = ({navigation}) => {
+  const scheme = useColorScheme();
+
+  const isDarkMode = scheme === 'dark';
+
+  const colors = {
+    background: isDarkMode ? '#282828' : '#f4f6f8',
+    card: isDarkMode ? '#1e1e1e' : '#ffffff',
+    text: isDarkMode ? '#ffffff' : '#2c3e50',
+    subText: isDarkMode ? '#cccccc' : '#34495e',
+    buttonBg: isDarkMode ? '#3498db' : '#2980b9',
+    imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
+  };
+
   const onLogOut = () => {
     AsyncStorage.removeItem('isLoggedIn');
     navigation.navigate('Landing');
@@ -30,17 +44,26 @@ const ProfilePage = ({navigation}) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       <Image
         source={require('../assets/img/user.png')}
         style={styles.profileImage}
       />
 
-      <Text style={styles.name}>Adarsh Mishra</Text>
-      <Text style={styles.email}>adarsh@example.com</Text>
-      <Text style={styles.phone}>+91 98765 43210</Text>
+      <Text style={[styles.name, {color: colors.text}]}>Adarsh Mishra</Text>
+      <Text style={[styles.email, {color: colors.subText}]}>
+        adarsh@example.com
+      </Text>
+      <Text style={[styles.phone, {color: colors.subText}]}>
+        +91 9876543210
+      </Text>
 
-      <TouchableOpacity style={styles.editButton} onPress={onLogOut}>
+      <TouchableOpacity
+        style={[
+          styles.editButton,
+          {backgroundColor: isDarkMode ? '#007FFF' : 'red'},
+        ]}
+        onPress={onLogOut}>
         <Text style={styles.editButtonText}>Log Out</Text>
       </TouchableOpacity>
     </View>
@@ -82,7 +105,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   editButton: {
-    backgroundColor: 'red',
+    // backgroundColor: 'red',
     paddingVertical: 10,
     paddingHorizontal: 25,
     borderRadius: 20,

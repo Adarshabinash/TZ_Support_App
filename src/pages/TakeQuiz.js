@@ -39,7 +39,7 @@ const TakeQuiz = () => {
   const isDarkMode = scheme === 'dark';
 
   const colors = {
-    background: isDarkMode ? '#121212' : '#f4f6f8',
+    background: isDarkMode ? '#282828' : '#f4f6f8',
     card: isDarkMode ? '#1e1e1e' : '#ffffff',
     text: isDarkMode ? '#ffffff' : '#2c3e50',
     subText: isDarkMode ? '#cccccc' : '#34495e',

@@ -18,7 +18,7 @@ function BottomTabsNavigator() {
           let iconName;
 
           if (route.name === 'Home') {
-            iconName = 'home'; // ✅ valid in AntDesign
+            iconName = 'home'; 
           } else if (route.name === 'TakeQuiz') {
             iconName = 'book'; // ✅ valid
           } else if (route.name === 'Profile') {
