@@ -12,7 +12,7 @@ const Stack = createNativeStackNavigator();
 
 const StackScreen = () => {
   return (
-    <Stack.Navigator initialRouteName="BottomScreens">
+    <Stack.Navigator>
       <Stack.Screen
         name="BottomScreens"
         component={BottomTabsNavigator}

@@ -1,8 +1,8 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {enableScreens} from 'react-native-screens';
 import TakeQuiz from '../pages/TakeQuiz';
-import HomeScreen from '../pages/LandingPage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ProfilePage from '../pages/ProfilePage';
 
 enableScreens();
 
@@ -27,8 +27,8 @@ function BottomTabsNavigator() {
         tabBarActiveTintColor: '#007AFF',
         tabBarInactiveTintColor: 'gray',
       })}>
-      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="TakeQuiz" component={TakeQuiz} />
+      <Tab.Screen name="Profile" component={ProfilePage} />
     </Tab.Navigator>
   );
 }
