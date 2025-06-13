@@ -10,11 +10,13 @@ import {
   BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
+  const navigation = useNavigation();
 
   var colors = {
     background: isDarkMode ? '#282828' : '#f4f6f8',
@@ -43,26 +45,28 @@ const HomePage = () => {
     return null;
   }
 
-  useEffect(() => {
-    const backAction = () => {
-      Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-        {
-          text: 'Cancel',
-          onPress: () => null,
-          style: 'cancel',
-        },
-        {text: 'YES', onPress: () => BackHandler.exitApp()},
-      ]);
-      return true;
-    };
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+          {
+            text: 'Cancel',
+            onPress: () => null,
+            style: 'cancel',
+          },
+          {text: 'YES', onPress: () => BackHandler.exitApp()},
+        ]);
+        return true;
+      };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction,
+      );
 
-    return () => backHandler.remove();
-  }, []);
+      return () => backHandler.remove();
+    }, []),
+  );
 
   console.log('isLoggedIn in homepage---------->', isLoggedIn);
 
