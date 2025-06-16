@@ -26,8 +26,16 @@ const ProfilePage = ({navigation}) => {
   };
 
   const onLogOut = () => {
-    AsyncStorage.removeItem('isLoggedIn');
-    navigation.navigate('Landing');
+    Alert.alert('Are you sure?', 'Do you want to log out?', [
+      {text: 'Cancel', onPress: () => null},
+      {
+        text: 'Yes',
+        onPress: () => {
+          AsyncStorage.removeItem('isLoggedIn');
+          navigation.navigate('Landing');
+        },
+      },
+    ]);
   };
 
   useEffect(() => {

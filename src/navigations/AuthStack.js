@@ -27,7 +27,6 @@ const AuthStack = () => {
         name="Home"
         component={BottomTabsNavigator}
         options={{headerShown: false}}
-        // initialParams={{setIsLoggedIn}}
       />
 
       <Stack.Screen name="Profile" component={ProfilePage} />

@@ -6,7 +6,7 @@ import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
-enableScreens();
+enableScreens(); 
 
 const Tab = createBottomTabNavigator();
 
