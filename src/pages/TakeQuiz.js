@@ -38,6 +38,24 @@ const GpsMap = () => {
   const [loading, setLoading] = useState(false);
   const scheme = useColorScheme();
 
+    const [savedSurveys, setSavedSurveys] = useState([]);
+  console.log('savedSurveys------->', savedSurveys);
+  const fetchSavedSurveys = async () => {
+    try {
+      const surveysCollection = database.get('surveys');
+      const surveys = await surveysCollection.query().fetch();
+      console.log('surveys', surveys);
+
+      setSavedSurveys(surveys);
+    } catch (error) {
+      console.error('📛 Error loading saved surveys:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSavedSurveys();
+  }, []);
+
   const isDarkMode = scheme === 'dark';
 
   const colors = {
