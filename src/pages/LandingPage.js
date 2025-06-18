@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {
   View,
@@ -12,6 +13,8 @@ import {
   Linking,
   StyleSheet,
   Dimensions,
+  BackHandler,
+  Alert,
 } from 'react-native';
 import {
   ScaledSheet,
@@ -49,6 +52,29 @@ const LandingPage = ({navigation}) => {
       }),
     ]).start();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const backAction = () => {
+        Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+          {
+            text: 'Cancel',
+            onPress: () => null,
+            style: 'cancel',
+          },
+          {text: 'YES', onPress: () => BackHandler.exitApp()},
+        ]);
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction,
+      );
+
+      return () => backHandler.remove();
+    }, []),
+  );
 
   return (
     <SafeAreaView style={styles.container}>

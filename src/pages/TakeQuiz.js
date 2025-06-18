@@ -36,23 +36,18 @@ const GpsMap = () => {
   const [answers, setAnswers] = useState({});
   const [imageInfo, setImageInfo] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [savedSurveys, setSavedSurveys] = useState([]);
-  console.log('savedSurveys------->', savedSurveys);
-  const fetchSavedSurveys = async () => {
-    try {
-      const surveysCollection = database.get('surveys');
-      const surveys = await surveysCollection.query().fetch();
-      console.log('surveys', surveys);
+  const scheme = useColorScheme();
 
-      setSavedSurveys(surveys);
-    } catch (error) {
-      console.error('📛 Error loading saved surveys:', error);
-    }
+  const isDarkMode = scheme === 'dark';
+
+  const colors = {
+    background: isDarkMode ? '#282828' : '#f4f6f8',
+    card: isDarkMode ? '#1e1e1e' : '#ffffff',
+    text: isDarkMode ? '#ffffff' : '#2c3e50',
+    subText: isDarkMode ? '#cccccc' : '#34495e',
+    buttonBg: isDarkMode ? '#3498db' : '#2980b9',
+    imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
   };
-
-  useEffect(() => {
-    fetchSavedSurveys();
-  }, []);
 
   const handleCheckbox = (qid, value) => {
     setAnswers(prev => ({

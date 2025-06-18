@@ -15,12 +15,14 @@ import {
   useColorScheme,
   StatusBar,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
-const LoginPage = ({navigation}) => {
+const LoginPage = () => {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({userId: '', password: ''});
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
   const slideAnim = useRef(new Animated.Value(300)).current;
   const scheme = useColorScheme();
@@ -64,19 +66,8 @@ const LoginPage = ({navigation}) => {
   };
 
   const handleSignIn = async () => {
-    const correctId = 'tch_1122';
-    const correctPassword = 'Sahoo@2025#';
-
     const isValid = validate();
     if (!isValid) return;
-
-    if (userId !== correctId || password !== correctPassword) {
-      Alert.alert(
-        'Oops!',
-        'Looks like you entered the wrong ID or password.\nDouble-check and try again!',
-      );
-      return;
-    }
 
     setLoading(true);
 
@@ -90,12 +81,13 @@ const LoginPage = ({navigation}) => {
       );
 
       if (response.status === 200 && response.data.msg === 'login success') {
-        navigation.navigate('TakeQuiz');
+        await AsyncStorage.setItem('isLoggedIn', 'true');
+        navigation.replace('Home');
       } else {
         Alert.alert('Login Failed', 'Invalid credentials from server');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Login error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -203,8 +195,6 @@ const LoginPage = ({navigation}) => {
   );
 };
 
-export default LoginPage;
-
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -256,3 +246,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default LoginPage;
