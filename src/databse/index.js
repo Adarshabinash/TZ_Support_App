@@ -1,14 +1,22 @@
 import {Database} from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
 
-import {schema} from './schema';
+import {schema} from './Schema';
 import Survey from './models/Survey';
 
 const adapter = new SQLiteAdapter({
+  dbName: 'MasterQuiz',
   schema,
+  jsi: true,
+  // migrations,
+  onSetUpError: error => {
+    console.log(error);
+  },
 });
 
-export const database = new Database({
+const database = new Database({
   adapter,
   modelClasses: [Survey],
 });
+
+export {database};

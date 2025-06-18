@@ -42,21 +42,9 @@ const GpsMap = () => {
     try {
       const surveysCollection = database.get('surveys');
       const surveys = await surveysCollection.query().fetch();
+      console.log('surveys', surveys);
 
-      const parsedSurveys = surveys.map(item => ({
-        id: item.id,
-        teacherId: item.teacherId,
-        teacherName: item.teacherName,
-        questions: JSON.parse(item.questionsJson),
-        area: item.area,
-        latitude: item.latitude,
-        longitude: item.longitude,
-        district: item.district,
-        block: item.block,
-        cluster: item.cluster,
-      }));
-
-      setSavedSurveys(parsedSurveys);
+      setSavedSurveys(surveys);
     } catch (error) {
       console.error('📛 Error loading saved surveys:', error);
     }
@@ -167,25 +155,18 @@ const GpsMap = () => {
         },
       };
 
-      // SAVE TO WATERMELONDB
-      await database.write(async () => {
-        await database.get('surveys').create(survey => {
-          survey.teacherId = finalData.teacherId;
-          survey.teacherName = finalData.teacherName;
-          survey.questionsJson = JSON.stringify(finalData.questions);
-          survey.latitude = latitude;
-          survey.longitude = longitude;
-          survey.district = district;
-          survey.block = block;
-          survey.cluster = cluster;
-          survey.area = finalData.geolocation.area;
+      const surveyCollection = database.get('surveys');
+
+      const result = await database.write(async () => {
+        const row = await surveyCollection.create(survey => {
+          survey.name = 'New Baseline Survey';
+          survey.status = 'draft';
         });
+        return row;
       });
 
-      const resp = await axios.post(
-        'https://tatvagyan.in/thinkzone/saveTchLocationSurvey',
-        finalData,
-      );
+      console.log('Created survey:', result);
+      Alert.alert('Survey Created');
 
       Alert.alert('Success', 'Quiz submitted with location!');
     } catch (err) {
