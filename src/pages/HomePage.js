@@ -162,17 +162,17 @@ const HomePage = () => {
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
             Quick Actions
           </Text>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={[styles.seeAll, {color: colors.primary}]}>
               See All
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Features Grid */}
         <View style={styles.featuresGrid}>
           {features.map(feature => (
-            <TouchableOpacity
+            <View
               key={feature.id}
               style={[
                 styles.featureCard,
@@ -192,7 +192,7 @@ const HomePage = () => {
               <Text style={[styles.featureDesc, {color: colors.subText}]}>
                 {feature.description}
               </Text>
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
 
@@ -201,11 +201,11 @@ const HomePage = () => {
           <Text style={[styles.sectionTitle, {color: colors.text}]}>
             Recent Activity
           </Text>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={[styles.seeAll, {color: colors.primary}]}>
               See All
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View style={[styles.activityCard, {backgroundColor: colors.card}]}>
@@ -221,12 +221,12 @@ const HomePage = () => {
                 2 hours ago
               </Text>
             </View>
-            <Icon
+            {/* <Icon
               name="chevron-right"
               size={20}
               color={colors.subText}
               style={styles.activityArrow}
-            />
+            /> */}
           </View>
           <View style={[styles.divider, {backgroundColor: colors.divider}]} />
           <View style={styles.activityItem}>
@@ -241,12 +241,12 @@ const HomePage = () => {
                 Yesterday
               </Text>
             </View>
-            <Icon
+            {/* <Icon
               name="chevron-right"
               size={20}
               color={colors.subText}
               style={styles.activityArrow}
-            />
+            /> */}
           </View>
         </View>
       </ScrollView>
@@ -261,6 +261,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: 20,
+    paddingTop: 40,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   header: {
