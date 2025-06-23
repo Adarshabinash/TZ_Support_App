@@ -58,12 +58,14 @@ const ProfilePage = ({navigation}) => {
         style={styles.profileImage}
       />
 
-      <Text style={[styles.name, {color: colors.text}]}>Adarsh Mishra</Text>
+      <Text style={[styles.name, {color: colors.text}]}>
+        ThinkZone Edubridge
+      </Text>
       <Text style={[styles.email, {color: colors.subText}]}>
-        adarsh@example.com
+        tzedubridge@thinkzone.in
       </Text>
       <Text style={[styles.phone, {color: colors.subText}]}>
-        +91 9876543210
+        +91 9178198947
       </Text>
 
       <TouchableOpacity

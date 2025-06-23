@@ -4,9 +4,7 @@ import TakeQuiz from '../pages/TakeQuiz';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import {View, Text} from 'react-native-animatable';
-import {useColorScheme} from 'react-native';
+import {useColorScheme, View, Text} from 'react-native';
 
 enableScreens();
 
@@ -17,38 +15,61 @@ function BottomTabsNavigator() {
   const isDarkMode = scheme === 'dark';
 
   const colors = {
-    background: isDarkMode ? 'black' : 'lightgrey',
-    card: isDarkMode ? '#1e1e1e' : '#ffffff',
+    background: isDarkMode ? '#121212' : '#ffffff',
+    card: isDarkMode ? '#1e1e1e' : '#f2f2f2',
     text: isDarkMode ? '#ffffff' : '#2c3e50',
-    subText: isDarkMode ? '#cccccc' : '#34495e',
-    buttonBg: isDarkMode ? '#3498db' : '#2980b9',
-    imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
+    active: isDarkMode ? '#BB86FC' : '#007AFF',
+    inactive: isDarkMode ? '#888888' : '#999999',
   };
 
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
-        tabBarIcon: ({color, size}) => {
+        tabBarIcon: ({focused, color, size}) => {
           let iconName;
 
           if (route.name === 'Home') {
-            iconName = '🏠';
+            iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'TakeQuiz') {
-            iconName = '📖';
+            iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Profile') {
-            iconName = '🚀';
+            iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
 
           return (
-            <View>
-              <Text style={{fontSize: 23}}>{iconName}</Text>
-            </View>
+            <Ionicons
+              name={iconName}
+              size={24}
+              color={focused ? colors.active : colors.inactive}
+            />
           );
         },
-        tabBarStyle: {backgroundColor: colors.background},
+        tabBarLabel: ({focused}) => (
+          <Text
+            style={{
+              fontSize: 12,
+              color: focused ? colors.active : colors.inactive,
+              fontWeight: focused ? '600' : '500',
+            }}>
+            {route.name}
+          </Text>
+        ),
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopLeftRadius: 15,
+          borderTopRightRadius: 15,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 5,
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: -2},
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 10,
+        },
         headerShown: false,
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: colors.text,
+        tabBarActiveTintColor: colors.active,
+        tabBarInactiveTintColor: colors.inactive,
       })}>
       <Tab.Screen name="Home" component={HomePage} />
       <Tab.Screen name="TakeQuiz" component={TakeQuiz} />

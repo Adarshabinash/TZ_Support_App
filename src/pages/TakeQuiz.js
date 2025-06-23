@@ -456,6 +456,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 15,
     marginTop: 20,
+    marginBottom: 20,
     alignItems: 'center',
   },
   imageButton: {
