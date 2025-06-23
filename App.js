@@ -1,42 +1,33 @@
-import React, {useState, useEffect} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import StackScreen from './src/navigations/StackNavigator';
-import AuthStack from './src/navigations/AuthStack';
+import React from 'react';
+import {View, Text, Button, StyleSheet, Alert} from 'react-native';
 
-const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(null);
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        // await AsyncStorage.removeItem('isLoggedIn');
-        const value = await AsyncStorage.getItem('isLoggedIn');
-        console.log('AsyncStorage isLoggedIn value:', value);
-        setIsLoggedIn(value === 'true');
-      } catch (error) {
-        console.error('Error checking login status:', error);
-        setIsLoggedIn(false);
-      }
-    };
-    checkLoginStatus();
-  }, []);
-
-  if (isLoggedIn === null) {
-    return null;
-  }
-
-  console.log('isLoggedIn in app.js---------->', isLoggedIn);
+const HomeScreen = () => {
+  const handlePress = () => {
+    Alert.alert('Hello!', 'You pressed the button.');
+  };
 
   return (
-    <NavigationContainer>
-      {isLoggedIn ? (
-        <StackScreen setIsLoggedIn={setIsLoggedIn} />
-      ) : (
-        <AuthStack />
-      )}
-    </NavigationContainer>
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome to Thinkzone Support App!</Text>
+      <Button title="Press Me" onPress={handlePress} />
+    </View>
   );
 };
 
-export default App;
+export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F2',
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    marginBottom: 20,
+    color: '#333',
+    fontWeight: 'bold',
+  },
+});
