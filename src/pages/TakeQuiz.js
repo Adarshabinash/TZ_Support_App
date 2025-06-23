@@ -228,7 +228,7 @@ const TakeQuiz = () => {
       });
     } catch (error) {
       console.error('Image/Location Error:', error);
-      Alert.alert('Error', 'Something went wrong while capturing image.');
+      Alert.alert('Error', 'Check Location Service.');
     } finally {
       setLoading(false);
     }
