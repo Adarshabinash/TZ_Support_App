@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import BottomSheet from '../utils/BottomSheet';
 import Feather from 'react-native-vector-icons/Feather';
 import Geolocation from '@react-native-community/geolocation';
@@ -23,7 +22,6 @@ import * as window from '../utils/Dimensions';
 import axios from 'axios';
 
 const sampleQuestions = [
-  // Classroom Culture – Supportive Learning Environment
   {
     questionId: 'q1',
     questionName: 'Did the teacher treat all students respectfully?',
@@ -40,8 +38,6 @@ const sampleQuestions = [
     questionId: 'q4',
     questionName: 'Did the teacher avoid bias and challenge stereotypes?',
   },
-
-  // Positive Behavioral Expectations
   {
     questionId: 'q5',
     questionName:
@@ -50,65 +46,6 @@ const sampleQuestions = [
   {
     questionId: 'q6',
     questionName: 'Did the teacher acknowledge positive student behavior?',
-  },
-  {
-    questionId: 'q7',
-    questionName:
-      'Did the teacher redirect misbehavior calmly and appropriately?',
-  },
-
-  // Instruction – Lesson Facilitation
-  {
-    questionId: 'q8',
-    questionName: 'Did the teacher explain the lesson objectives clearly?',
-  },
-  {
-    questionId: 'q9',
-    questionName: 'Did the teacher use multiple ways to present content?',
-  },
-  {
-    questionId: 'q10',
-    questionName:
-      'Did the teacher relate the lesson to students’ lives or prior knowledge?',
-  },
-  {
-    questionId: 'q11',
-    questionName: 'Did the teacher model or demonstrate the task/lesson?',
-  },
-
-  // Checks for Understanding
-  {
-    questionId: 'q12',
-    questionName: 'Did the teacher ask questions to check understanding?',
-  },
-  {
-    questionId: 'q13',
-    questionName: 'Did the teacher monitor most students during activities?',
-  },
-  {
-    questionId: 'q14',
-    questionName: 'Did the teacher adjust teaching based on student responses?',
-  },
-
-  // Feedback
-  {
-    questionId: 'q15',
-    questionName: 'Did the teacher give feedback to clarify misunderstandings?',
-  },
-  {
-    questionId: 'q16',
-    questionName: 'Did the teacher give feedback to help students improve?',
-  },
-
-  // Critical Thinking
-  {
-    questionId: 'q17',
-    questionName: 'Did the teacher ask open-ended questions?',
-  },
-  {
-    questionId: 'q18',
-    questionName:
-      'Did the teacher encourage deeper thinking through tasks/questions?',
   },
 ];
 
@@ -119,7 +56,6 @@ const TakeQuiz = () => {
   const [imageInfo, setImageInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const scheme = useColorScheme();
-
   const isDarkMode = scheme === 'dark';
 
   const colors = {
@@ -129,7 +65,14 @@ const TakeQuiz = () => {
     subText: isDarkMode ? '#cccccc' : '#34495e',
     buttonBg: isDarkMode ? '#3498db' : '#2980b9',
     imageButtonBg: isDarkMode ? '#2ecc71' : '#27ae60',
+    modalBg: isDarkMode ? '#1a1a1a' : '#fff',
+    modalText: isDarkMode ? '#eaeaea' : '#000',
+    borderColor: isDarkMode ? '#444' : '#ccc',
   };
+
+  const allAnswered = sampleQuestions.every(
+    q => answers[q.questionId] !== undefined,
+  );
 
   const handleCheckbox = (qid, value) => {
     setAnswers(prev => ({
@@ -294,18 +237,23 @@ const TakeQuiz = () => {
     <View style={{flex: 1, backgroundColor: colors.background}}>
       <SafeAreaView style={{flex: 1}}>
         <BottomSheet modalRef={modalRef} modalHeight={modalHeight}>
-          <View style={styles.modalContainer}>
+          <View
+            style={[styles.modalContainer, {backgroundColor: colors.modalBg}]}>
             <TouchableOpacity
               onPress={() => handleSelection('camera')}
               style={styles.modalButtonContainer}>
-              <Feather name="camera" size={30} color="#2980b9" />
-              <Text style={styles.modalButtonText}>Take Picture</Text>
+              <Feather name="camera" size={30} color={colors.buttonBg} />
+              <Text style={[styles.modalButtonText, {color: colors.modalText}]}>
+                Take Picture
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleSelection('gallery')}
               style={styles.modalButtonContainer}>
-              <Feather name="file" size={30} color="#16a085" />
-              <Text style={styles.modalButtonText}>Choose from Gallery</Text>
+              <Feather name="file" size={30} color={colors.imageButtonBg} />
+              <Text style={[styles.modalButtonText, {color: colors.modalText}]}>
+                Choose from Gallery
+              </Text>
             </TouchableOpacity>
           </View>
         </BottomSheet>
@@ -376,8 +324,17 @@ const TakeQuiz = () => {
           )}
 
           <Pressable
-            style={[styles.submitButton, {backgroundColor: colors.buttonBg}]}
-            onPress={handleSubmit}>
+            style={[
+              styles.submitButton,
+              {backgroundColor: allAnswered ? colors.buttonBg : '#bdc3c7'},
+            ]}
+            onPress={
+              allAnswered
+                ? handleSubmit
+                : () =>
+                    Alert.alert('Incomplete', 'Please answer all questions.')
+            }
+            disabled={!allAnswered}>
             <Text style={styles.submitButtonText}>📤 Submit Quiz</Text>
           </Pressable>
         </ScrollView>
@@ -399,16 +356,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
   },
   modalButtonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: 60,
+    height: 80,
+    paddingHorizontal: 20,
+    borderRadius: 12,
   },
   modalButtonText: {
     fontSize: 13,
-    color: '#000',
+    marginTop: 6,
   },
   title: {
     fontSize: 24,
