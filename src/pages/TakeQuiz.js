@@ -23,9 +23,93 @@ import * as window from '../utils/Dimensions';
 import axios from 'axios';
 
 const sampleQuestions = [
-  {questionId: 'q1', questionName: 'Is React Native cross-platform?'},
-  {questionId: 'q2', questionName: 'Does React Native use JavaScript?'},
-  {questionId: 'q3', questionName: 'Can React Native build iOS apps?'},
+  // Classroom Culture – Supportive Learning Environment
+  {
+    questionId: 'q1',
+    questionName: 'Did the teacher treat all students respectfully?',
+  },
+  {
+    questionId: 'q2',
+    questionName: 'Did the teacher use positive language with students?',
+  },
+  {
+    questionId: 'q3',
+    questionName: 'Did the teacher respond to students’ needs?',
+  },
+  {
+    questionId: 'q4',
+    questionName: 'Did the teacher avoid bias and challenge stereotypes?',
+  },
+
+  // Positive Behavioral Expectations
+  {
+    questionId: 'q5',
+    questionName:
+      'Did the teacher set clear expectations for class activities?',
+  },
+  {
+    questionId: 'q6',
+    questionName: 'Did the teacher acknowledge positive student behavior?',
+  },
+  {
+    questionId: 'q7',
+    questionName:
+      'Did the teacher redirect misbehavior calmly and appropriately?',
+  },
+
+  // Instruction – Lesson Facilitation
+  {
+    questionId: 'q8',
+    questionName: 'Did the teacher explain the lesson objectives clearly?',
+  },
+  {
+    questionId: 'q9',
+    questionName: 'Did the teacher use multiple ways to present content?',
+  },
+  {
+    questionId: 'q10',
+    questionName:
+      'Did the teacher relate the lesson to students’ lives or prior knowledge?',
+  },
+  {
+    questionId: 'q11',
+    questionName: 'Did the teacher model or demonstrate the task/lesson?',
+  },
+
+  // Checks for Understanding
+  {
+    questionId: 'q12',
+    questionName: 'Did the teacher ask questions to check understanding?',
+  },
+  {
+    questionId: 'q13',
+    questionName: 'Did the teacher monitor most students during activities?',
+  },
+  {
+    questionId: 'q14',
+    questionName: 'Did the teacher adjust teaching based on student responses?',
+  },
+
+  // Feedback
+  {
+    questionId: 'q15',
+    questionName: 'Did the teacher give feedback to clarify misunderstandings?',
+  },
+  {
+    questionId: 'q16',
+    questionName: 'Did the teacher give feedback to help students improve?',
+  },
+
+  // Critical Thinking
+  {
+    questionId: 'q17',
+    questionName: 'Did the teacher ask open-ended questions?',
+  },
+  {
+    questionId: 'q18',
+    questionName:
+      'Did the teacher encourage deeper thinking through tasks/questions?',
+  },
 ];
 
 const TakeQuiz = () => {

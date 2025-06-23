@@ -142,7 +142,7 @@ const LandingPage = ({navigation}) => {
           </Animated.View>
         </View>
 
-        <View style={styles.footer}>
+        {/* <View style={styles.footer}>
           <Text style={styles.footerText}>
             By continuing, you agree to our{' '}
             <Text
@@ -169,7 +169,7 @@ const LandingPage = ({navigation}) => {
           <Text style={styles.footerSubText}>
             This app is currently available for use in India 🇮🇳
           </Text>
-        </View>
+        </View> */}
       </ImageBackground>
     </SafeAreaView>
   );
