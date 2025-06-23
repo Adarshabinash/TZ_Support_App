@@ -24,8 +24,8 @@ android {
         applicationId "com.nrusingh.teacher_thinkzone1"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20033
-        versionName "2.0.3"
+        versionCode 20035
+        versionName "2.3.5"
     }
     signingConfigs {
         debug {
@@ -45,10 +45,8 @@ android {
         debug {
             signingConfig signingConfigs.debug
         }
-        release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+        release {    
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
