@@ -106,6 +106,11 @@ const LoginPage = () => {
       );
 
       if (response.status === 200 && response.data.msg === 'login success') {
+        console.log('Login successful:', response.data);
+        await AsyncStorage.setItem(
+          'teacherData',
+          JSON.stringify(response?.data?.teacher),
+        );
         await AsyncStorage.setItem('isLoggedIn', 'true');
         navigation.replace('Home');
       } else {

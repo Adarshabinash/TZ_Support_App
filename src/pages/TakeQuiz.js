@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   useColorScheme,
+  ActivityIndicator,
 } from 'react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet from '../utils/BottomSheet';
 import Feather from 'react-native-vector-icons/Feather';
 import Geolocation from '@react-native-community/geolocation';
@@ -33,7 +34,7 @@ const sampleQuestions = [
   },
   {
     questionId: 'q3',
-    questionName: 'Did the teacher respond to students’ needs?',
+    questionName: 'Did the teacher respond to students needs?',
   },
   {
     questionId: 'q4',
@@ -56,6 +57,11 @@ const TakeQuiz = () => {
   const [answers, setAnswers] = useState({});
   const [imageInfo, setImageInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [teacherData, setTeacherData] = useState(null);
+  const [surveyData, setSurveyData] = useState(null);
+  console.log('surveyData------->', surveyData);
+
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
 
@@ -70,6 +76,54 @@ const TakeQuiz = () => {
     modalText: isDarkMode ? '#eaeaea' : '#000',
     borderColor: isDarkMode ? '#444' : '#ccc',
   };
+
+  useEffect(() => {
+    const fetchTeacherAndSurveyData = async () => {
+      try {
+        setFetching(true);
+
+        // Get teacher data from AsyncStorage
+        const storedTeacher = await AsyncStorage.getItem('teacherData');
+
+        if (storedTeacher) {
+          const teacher = JSON.parse(storedTeacher);
+
+          setTeacherData(teacher);
+
+          // Fetch survey data using teacherId
+          const response = await axios.get(
+            `https://tatvagyan.in/thinkzone/getTchLocationSurvey/${teacher.teacherId}/${teacher.createdAt}`,
+          );
+          console.log('response------->', response.data);
+
+          setSurveyData(response.data);
+
+          // Set answers from the fetched data
+          if (response.data.questions) {
+            const initialAnswers = {};
+            response.data.questions.forEach(q => {
+              initialAnswers[q.questionId] = q.answer;
+            });
+            setAnswers(initialAnswers);
+          }
+
+          // Set image info if available
+          if (response.data.imageInfo) {
+            setImageInfo(response.data.imageInfo);
+          }
+        } else {
+          Alert.alert('Error', 'Teacher data not found');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        Alert.alert('Error', 'Failed to fetch survey data');
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchTeacherAndSurveyData();
+  }, []);
 
   const allAnswered = sampleQuestions.every(
     q => answers[q.questionId] !== undefined,
@@ -118,6 +172,7 @@ const TakeQuiz = () => {
     }
 
     try {
+      setLoading(true);
       const position = await tryGetLocation(
         {enableHighAccuracy: false, timeout: 5000, maximumAge: 60000},
         () =>
@@ -135,8 +190,8 @@ const TakeQuiz = () => {
       );
 
       const finalData = {
-        teacherId: 'teacher_123',
-        teacherName: 'John Doe',
+        teacherId: teacherData?.teacherId || 'unknown',
+        teacherName: teacherData?.teacherName || 'Unknown Teacher',
         questions: sampleQuestions.map(q => ({
           questionId: q.questionId,
           questionName: q.questionName,
@@ -149,6 +204,7 @@ const TakeQuiz = () => {
           block,
           cluster,
         },
+        ...(imageInfo && {imageInfo}),
       };
 
       const resp = await axios.post(
@@ -157,10 +213,22 @@ const TakeQuiz = () => {
       );
 
       console.log('resp------->', resp);
-      Alert.alert('Success', 'Quiz submitted with location!');
+      Alert.alert('Success', 'Quiz submitted with location!', [
+        {
+          text: 'OK',
+          onPress: () => {
+            // Clear all records after successful submission
+            setAnswers({});
+            setImageInfo(null);
+            setSurveyData(null);
+          },
+        },
+      ]);
     } catch (err) {
-      console.error('Location fetch failed:', err);
-      Alert.alert('Location Error', err.message || 'Could not fetch location');
+      console.error('Submit failed:', err);
+      Alert.alert('Error', err.message || 'Failed to submit survey');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -234,6 +302,18 @@ const TakeQuiz = () => {
     }
   };
 
+  if (fetching) {
+    return (
+      <View
+        style={[styles.loaderContainer, {backgroundColor: colors.background}]}>
+        <ActivityIndicator size="large" color={colors.buttonBg} />
+        <Text style={[styles.loaderText, {color: colors.text}]}>
+          Loading survey data...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{flex: 1, backgroundColor: colors.background}}>
       <SafeAreaView style={{flex: 1}}>
@@ -263,6 +343,11 @@ const TakeQuiz = () => {
           <Text style={[styles.title, {color: colors.text}]}>
             📝 Teacher Quiz Form
           </Text>
+          {teacherData && (
+            <Text style={[styles.subtitle, {color: colors.subText}]}>
+              Teacher: {teacherData.teacherName}
+            </Text>
+          )}
 
           {sampleQuestions.map((q, index) => (
             <View
@@ -279,6 +364,14 @@ const TakeQuiz = () => {
                   ]}
                   onPress={() => handleCheckbox(q.questionId, true)}>
                   <Text style={styles.checkboxText}>Yes</Text>
+                  {answers[q.questionId] === true && (
+                    <Feather
+                      name="check"
+                      size={20}
+                      color="white"
+                      style={styles.checkIcon}
+                    />
+                  )}
                 </Pressable>
                 <Pressable
                   style={[
@@ -287,6 +380,14 @@ const TakeQuiz = () => {
                   ]}
                   onPress={() => handleCheckbox(q.questionId, false)}>
                   <Text style={styles.checkboxText}>No</Text>
+                  {answers[q.questionId] === false && (
+                    <Feather
+                      name="check"
+                      size={20}
+                      color="white"
+                      style={styles.checkIcon}
+                    />
+                  )}
                 </Pressable>
               </View>
             </View>
@@ -335,8 +436,12 @@ const TakeQuiz = () => {
                 : () =>
                     Alert.alert('Incomplete', 'Please answer all questions.')
             }
-            disabled={!allAnswered}>
-            <Text style={styles.submitButtonText}>📤 Submit Quiz</Text>
+            disabled={!allAnswered || loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>📤 Submit Quiz</Text>
+            )}
           </Pressable>
         </ScrollView>
       </SafeAreaView>
@@ -350,7 +455,15 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
-    marginTop: 50,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loaderText: {
+    marginTop: 20,
+    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
@@ -372,6 +485,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -400,6 +519,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor: '#f9f9f9',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   selectedYes: {
     backgroundColor: '#2ecc71',
@@ -410,6 +531,10 @@ const styles = StyleSheet.create({
   checkboxText: {
     color: 'black',
     fontWeight: '600',
+    marginRight: 5,
+  },
+  checkIcon: {
+    marginLeft: 5,
   },
   submitButton: {
     borderRadius: 10,
