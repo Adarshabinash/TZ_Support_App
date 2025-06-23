@@ -1,30 +1,28 @@
-export const getDistrictAndBlock = async (lat, lon) => {
+export const getDistrictAndBlock = async (latitude, longitude) => {
   try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      {
-        headers: {
-          'User-Agent': 'YourAppName/1.0 (your-email@example.com)',
-        },
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'YourAppName', // Required by Nominatim
       },
-    );
+    });
 
     const data = await response.json();
-    console.log('✅ Final data to submit2:', data);
-    if (!data.address) {
-      console.warn('No address found in reverse geocode response');
-      return {district: '', block: '', cluster: ''};
-    }
 
-    const address = data.address || {};
+    const {address} = data;
+
     return {
-      district:
-        address.county || address.state_district || address.district || '',
-      block: address.suburb || address.village || address.town || '',
-      cluster: address.neighbourhood || address.hamlet || '',
+      district: address.county || address.district || 'Unknown District',
+      block: address.suburb || address.village || 'Unknown Block',
+      cluster: address.hamlet || address.neighbourhood || 'Unknown Cluster',
     };
-  } catch (err) {
-    console.error('Error reverse geocoding:', err);
-    return {district: '', block: '', cluster: ''};
+  } catch (error) {
+    console.error('Error reverse geocoding:', error);
+    return {
+      district: 'Unknown',
+      block: 'Unknown',
+      cluster: 'Unknown',
+    };
   }
 };

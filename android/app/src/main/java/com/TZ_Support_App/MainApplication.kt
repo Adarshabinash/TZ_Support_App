@@ -1,4 +1,4 @@
-package com.TZ_Support_App
+package com.nrusingh.teacher_thinkzone1;
 
 import android.app.Application
 import com.facebook.react.PackageList
