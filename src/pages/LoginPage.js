@@ -87,8 +87,25 @@ const LoginPage = () => {
         Alert.alert('Login Failed', 'Invalid credentials from server');
       }
     } catch (error) {
+      const status = error?.response?.status;
+      const serverMsg = error?.response?.data?.msg;
+
+      console.log('Response from server:', serverMsg);
       console.error('Login error:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+
+      let alertTitle = 'Login Error';
+      let alertMessage = 'Something went wrong. Please try again.';
+
+      if (status === 400 || status === 401) {
+        alertMessage =
+          serverMsg || 'Invalid credentials. Please check and try again.';
+      } else if (status === 500) {
+        alertMessage = 'Server error. Please try again later.';
+      } else if (serverMsg) {
+        alertMessage = serverMsg;
+      }
+
+      Alert.alert(alertTitle, alertMessage, [{text: 'OK'}]);
     } finally {
       setLoading(false);
     }
@@ -146,6 +163,9 @@ const LoginPage = () => {
             }}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoComplete="username"
+            textContentType="username"
+            importantForAutofill="yes"
           />
           {errors.userId ? (
             <Text style={[styles.error, {color: colors.error}]}>
@@ -172,6 +192,9 @@ const LoginPage = () => {
               }
             }}
             secureTextEntry
+            autoComplete="password"
+            textContentType="password"
+            importantForAutofill="yes"
           />
           {errors.password ? (
             <Text style={[styles.error, {color: colors.error}]}>

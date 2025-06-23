@@ -41,7 +41,7 @@ function BottomTabsNavigator() {
 
           return (
             <View>
-              <Text style={{fontSize: 23}}>{iconName}</Text>;
+              <Text style={{fontSize: 23}}>{iconName}</Text>
             </View>
           );
         },

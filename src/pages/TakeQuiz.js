@@ -18,7 +18,7 @@ import BottomSheet from '../utils/BottomSheet';
 import Feather from 'react-native-vector-icons/Feather';
 import Geolocation from '@react-native-community/geolocation';
 import ImagePicker from 'react-native-image-crop-picker';
-import {getDistrictAndBlock} from '../utils/locationHelper';
+import {getDistrictAndBlock} from '../utils/locationHalper';
 import * as window from '../utils/Dimensions';
 import axios from 'axios';
 
