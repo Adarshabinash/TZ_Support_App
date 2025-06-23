@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "276264814479",
+    "firebase_url": "https://teacher-push-notification.firebaseio.com",
+    "project_id": "teacher-push-notification",
+    "storage_bucket": "teacher-push-notification.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276264814479:android:7ffc628c29172fd4",
+        "android_client_info": {
+          "package_name": "com.nrusingh.teacher_thinkzone1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276264814479-ce1q1t1hr4pkiph9sgrf79g45j12268q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nrusingh.teacher_thinkzone1",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "276264814479-a18j6fuiioo8qat6cu98ptma5vva5sqo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwchcKQHl9ZVQp6EK68G9EtzXuD9YPvaA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276264814479-a18j6fuiioo8qat6cu98ptma5vva5sqo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
