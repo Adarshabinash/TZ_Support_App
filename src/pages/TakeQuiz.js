@@ -449,14 +449,14 @@ const TakeQuiz = () => {
                     ]}
                     onPress={() => handleCheckbox(q.questionId, true)}>
                     <Text style={styles.checkboxText}>Yes</Text>
-                    {answers[q.questionId] === true && (
+                    {/* {answers[q.questionId] === true && (
                       <Feather
                         name="check"
                         size={20}
                         color="white"
                         style={styles.checkIcon}
                       />
-                    )}
+                    )} */}
                   </Pressable>
                   <Pressable
                     style={[
@@ -465,14 +465,14 @@ const TakeQuiz = () => {
                     ]}
                     onPress={() => handleCheckbox(q.questionId, false)}>
                     <Text style={styles.checkboxText}>No</Text>
-                    {answers[q.questionId] === false && (
+                    {/* {answers[q.questionId] === false && (
                       <Feather
                         name="check"
                         size={20}
                         color="white"
                         style={styles.checkIcon}
                       />
-                    )}
+                    )} */}
                   </Pressable>
                 </View>
               )}
