@@ -20,9 +20,30 @@ const {width} = Dimensions.get('window');
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [teacher, setTeacher] = useState({});
   const scheme = useColorScheme();
   const isDarkMode = scheme === 'dark';
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const storedTeacher = await AsyncStorage.getItem('teacherData');
+
+        if (storedTeacher) {
+          const teacher = JSON.parse(storedTeacher);
+          setTeacher(teacher);
+          console.log('Teacher:', teacher);
+        } else {
+          console.warn('No teacher data found');
+        }
+      } catch (error) {
+        console.error('Error reading teacher data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const colors = {
     background: isDarkMode ? '#121212' : '#f8f9fa',
@@ -114,7 +135,7 @@ const HomePage = () => {
         <View style={styles.header}>
           <View>
             <Text style={[styles.greeting, {color: colors.text}]}>
-              Hello, ThinkZone !
+              Hello, {teacher.teacherName} !
             </Text>
             <Text style={[styles.subHeading, {color: colors.subText}]}>
               Welcome back to your dashboard
@@ -261,7 +282,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 50,
     paddingHorizontal: 16,
     paddingBottom: 40,
   },

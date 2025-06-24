@@ -98,7 +98,7 @@ const ProfilePage = ({navigation}) => {
     {
       icon: 'location-on',
       title: 'Location',
-      value: 'Bhubaneswar, India',
+      value: 'Cuttack, Odisha',
     },
     {
       icon: 'business',
