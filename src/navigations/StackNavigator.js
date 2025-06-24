@@ -13,19 +13,19 @@ enableScreens();
 const Stack = createNativeStackNavigator();
 
 const StackScreen = ({setIsLoggedIn}) => {
-  const handleLogout = async navigation => {
-    try {
-      await AsyncStorage.multiRemove([
-        'isLoggedIn',
-        'teacherData',
-        'userToken',
-      ]);
-      setIsLoggedIn(false);
-      navigation.navigate('Login'); // Navigate to Login instead of Landing
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  // const handleLogout = async navigation => {
+  //   try {
+  //     await AsyncStorage.multiRemove([
+  //       'isLoggedIn',
+  //       'teacherData',
+  //       'userToken',
+  //     ]);
+  //     setIsLoggedIn(false);
+  //     navigation.navigate('Login'); // Navigate to Login instead of Landing
+  //   } catch (error) {
+  //     console.error('Logout error:', error);
+  //   }
+  // };
 
   return (
     <Stack.Navigator initialRouteName="Login">
@@ -39,7 +39,7 @@ const StackScreen = ({setIsLoggedIn}) => {
         name="Home"
         component={BottomTabsNavigator}
         options={{headerShown: false}}
-        initialParams={{setIsLoggedIn, handleLogout}}
+        initialParams={{setIsLoggedIn}}
       />
       <Stack.Screen
         name="TakeQuiz"
