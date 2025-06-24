@@ -60,6 +60,8 @@ const TakeQuiz = () => {
   const [fetching, setFetching] = useState(true);
   const [teacherData, setTeacherData] = useState(null);
   const [surveyData, setSurveyData] = useState(null);
+  console.log('surveyData', surveyData);
+
   const [isViewMode, setIsViewMode] = useState(false);
 
   const scheme = useColorScheme();
@@ -390,16 +392,16 @@ const TakeQuiz = () => {
                 </View>
               </View> */}
 
-              {surveyData.geolocation.district && (
+              {/* {surveyData?.geolocation?.district && (
                 <View style={styles.addressContainer}>
                   <View style={styles.addressItem}>
                     <Feather name="layers" size={16} color="#2ecc71" />
                     <Text style={[styles.addressText, {color: colors.text}]}>
-                      District: {surveyData?.geolocatio?.district}
+                      District: {surveyData?.geolocation?.district}
                     </Text>
                   </View>
 
-                  {surveyData.geolocation.block && (
+                  {surveyData?.geolocation?.block && (
                     <View style={styles.addressItem}>
                       <Feather name="grid" size={16} color="#f39c12" />
                       <Text style={[styles.addressText, {color: colors.text}]}>
@@ -408,7 +410,7 @@ const TakeQuiz = () => {
                     </View>
                   )}
 
-                  {surveyData.geolocation.cluster && (
+                  {surveyData?.geolocation?.cluster && (
                     <View style={styles.addressItem}>
                       <Feather name="hexagon" size={16} color="#9b59b6" />
                       <Text style={[styles.addressText, {color: colors.text}]}>
@@ -417,7 +419,7 @@ const TakeQuiz = () => {
                     </View>
                   )}
                 </View>
-              )}
+              )} */}
             </View>
           )}
 
