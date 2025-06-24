@@ -76,9 +76,20 @@ const ProfilePage = ({navigation}) => {
       {
         text: 'Log out',
         style: 'destructive',
-        onPress: () => {
-          AsyncStorage.removeItem('isLoggedIn');
-          navigation.navigate('Landing');
+        onPress: async () => {
+          try {
+            await AsyncStorage.multiRemove([
+              'isLoggedIn',
+              'teacherData',
+              'userToken',
+            ]);
+            navigation.navigate('Login');
+            // if (route.params?.setIsLoggedIn) {
+            //   route.params.setIsLoggedIn(false);
+            // }
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
         },
       },
     ]);
