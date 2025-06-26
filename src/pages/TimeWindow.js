@@ -18,8 +18,8 @@ const userId = 'user_123';
 const examId = 'demo_exam_001';
 const getKey = suffix => `${examId}_${userId}_${suffix}`;
 
-const EXAM_START = new Date('2025-06-26T14:00:00');
-const EXAM_END = new Date('2025-06-26T16:00:00');
+const EXAM_START = new Date('2025-06-26T15:04:30');
+const EXAM_END = new Date('2025-06-26T15:05:00');
 
 const TimeWindow = () => {
   const [status, setStatus] = useState('loading');
@@ -33,7 +33,7 @@ const TimeWindow = () => {
   const handleCloseTest = () => {
     if (openTestModal) {
       Alert.alert(
-        'Are you sure?',
+        '⌛ Are you sure?',
         'Do you want to go back? The timer will be still running.',
         [
           {
@@ -160,12 +160,22 @@ const TimeWindow = () => {
   }, [status, remainingSeconds]);
 
   const handleSubmit = async () => {
-    await AsyncStorage.setItem(getKey('submitted'), 'true');
-    setStatus('submitted');
-    Alert.alert(
-      '✅ Exam Submitted',
-      'You have successfully submitted the exam.',
-    );
+    // setStatus('submitted');
+    Alert.alert('Are you sure?', 'Do you want to submit your test?', [
+      {
+        text: 'Cancel',
+        onPress: () => null,
+        style: 'cance',
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          AsyncStorage.setItem(getKey('submitted'), 'true');
+          setOpenTestModal(false);
+          style: 'ok';
+        },
+      },
+    ]);
   };
 
   const formatTime = sec => {
