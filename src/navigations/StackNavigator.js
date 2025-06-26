@@ -7,6 +7,7 @@ import ProfilePage from '../pages/ProfilePage';
 import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage'; // Import your LoginPage component
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TimeWindow from '../pages/TimeWindow';
 
 enableScreens();
 
@@ -54,6 +55,11 @@ const StackScreen = ({setIsLoggedIn}) => {
       <Stack.Screen
         name="Landing"
         component={LandingPage}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="TimeWindow"
+        component={TimeWindow}
         options={{headerShown: false}}
       />
     </Stack.Navigator>

@@ -5,6 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
 import {useColorScheme, View, Text} from 'react-native';
+import TimeWindow from '../pages/TimeWindow';
 
 enableScreens();
 
@@ -33,6 +34,8 @@ function BottomTabsNavigator() {
           } else if (route.name === 'TakeQuiz') {
             iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Profile') {
+            iconName = focused ? 'person-circle' : 'person-circle-outline';
+          } else if (route.name === 'TimeWindow') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
 
@@ -74,6 +77,7 @@ function BottomTabsNavigator() {
       <Tab.Screen name="Home" component={HomePage} />
       <Tab.Screen name="TakeQuiz" component={TakeQuiz} />
       <Tab.Screen name="Profile" component={ProfilePage} />
+      <Tab.Screen name="TimeWindow" component={TimeWindow} />
     </Tab.Navigator>
   );
 }
