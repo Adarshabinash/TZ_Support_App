@@ -91,58 +91,53 @@ const LoginPage = () => {
   };
 
   const handleSignIn = async () => {
-    const isValid = validate();
-    if (!isValid) return;
-
-    setLoading(true);
-
-    try {
-      const response = await axios.post(
-        'https://tatvagyan.in/thinkzone/authTeacher',
-        {
-          teacherId: userId,
-          password: password,
-        },
-      );
-
-      if (response.status === 200 && response.data.msg === 'login success') {
-        console.log('Login successful:', response.data);
-        await AsyncStorage.setItem(
-          'teacherData',
-          JSON.stringify(response?.data?.teacher),
-        );
-        await AsyncStorage.setItem('isLoggedIn', 'true');
-        navigation.replace('Home');
-      } else {
-        Alert.alert(
-          'Authentication Failed',
-          'Please check your credentials and try again.',
-        );
-      }
-    } catch (error) {
-      const status = error?.response?.status;
-      const serverMsg = error?.response?.data?.msg;
-
-      let alertTitle = 'Login Error';
-      let alertMessage =
-        'Unable to connect to the server. Please try again later.';
-
-      if (status === 400 || status === 401) {
-        alertMessage =
-          serverMsg ||
-          'Invalid official ID or password. Please verify your credentials.';
-      } else if (status === 500) {
-        alertMessage =
-          'Server maintenance in progress. Please try after some time.';
-      } else if (error.message === 'Network Error') {
-        alertMessage =
-          'Network unavailable. Please check your internet connection.';
-      }
-
-      Alert.alert(alertTitle, alertMessage, [{text: 'OK'}]);
-    } finally {
-      setLoading(false);
-    }
+    navigation.replace('Home');
+    // const isValid = validate();
+    // if (!isValid) return;
+    // setLoading(true);
+    // try {
+    //   const response = await axios.post(
+    //     'https://tatvagyan.in/thinkzone/authTeacher',
+    //     {
+    //       teacherId: userId,
+    //       password: password,
+    //     },
+    //   );
+    //   if (response.status === 200 && response.data.msg === 'login success') {
+    //     console.log('Login successful:', response.data);
+    //     await AsyncStorage.setItem(
+    //       'teacherData',
+    //       JSON.stringify(response?.data?.teacher),
+    //     );
+    //     await AsyncStorage.setItem('isLoggedIn', 'true');
+    //     navigation.replace('Home');
+    //   } else {
+    //     Alert.alert(
+    //       'Authentication Failed',
+    //       'Please check your credentials and try again.',
+    //     );
+    //   }
+    // } catch (error) {
+    //   const status = error?.response?.status;
+    //   const serverMsg = error?.response?.data?.msg;
+    //   let alertTitle = 'Login Error';
+    //   let alertMessage =
+    //     'Unable to connect to the server. Please try again later.';
+    //   if (status === 400 || status === 401) {
+    //     alertMessage =
+    //       serverMsg ||
+    //       'Invalid official ID or password. Please verify your credentials.';
+    //   } else if (status === 500) {
+    //     alertMessage =
+    //       'Server maintenance in progress. Please try after some time.';
+    //   } else if (error.message === 'Network Error') {
+    //     alertMessage =
+    //       'Network unavailable. Please check your internet connection.';
+    //   }
+    //   Alert.alert(alertTitle, alertMessage, [{text: 'OK'}]);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   return (
