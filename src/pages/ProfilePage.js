@@ -1,393 +1,432 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
-  Image,
+  Text,
+  StyleSheet,
   TouchableOpacity,
-  BackHandler,
+  Image,
   Alert,
-  useColorScheme,
-  Animated,
-  Easing,
+  PermissionsAndroid,
   ScrollView,
+  Dimensions,
+  ActivityIndicator,
+  LogBox,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import TextRecognition from '@react-native-ml-kit/text-recognition';
+import DocumentScanner from 'react-native-document-scanner-plugin';
 
-const ProfilePage = ({navigation}) => {
-  const scheme = useColorScheme();
-  const isDarkMode = scheme === 'dark';
-  const [scaleValue] = useState(new Animated.Value(0));
-  const [opacityValue] = useState(new Animated.Value(0));
-  const [translateYValue] = useState(new Animated.Value(30));
+// Ignore warnings
+LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
-  const colors = {
-    background: isDarkMode ? '#121212' : '#f8f9fa',
-    card: isDarkMode ? '#1e1e1e' : '#ffffff',
-    text: isDarkMode ? '#ffffff' : '#2c3e50',
-    subText: isDarkMode ? '#b0b0b0' : '#7f8c8d',
-    buttonBg: isDarkMode ? '#4a6fa5' : '#3f51b5',
-    accent: isDarkMode ? '#bb86fc' : '#6200ee',
-    divider: isDarkMode ? '#333333' : '#e0e0e0',
-  };
+const {width, height} = Dimensions.get('window');
 
+const AndroidDocumentScanner = () => {
+  const [imageUri, setImageUri] = useState(null);
+  const [imagePieces, setImagePieces] = useState([]);
+  const [detectedText, setDetectedText] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({width: 0, height: 0});
+
+  // Check camera permission on mount
   useEffect(() => {
-    // Animation sequence
-    Animated.parallel([
-      Animated.timing(scaleValue, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.bezier(0.2, 0.8, 0.2, 1),
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityValue, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateYValue, {
-        toValue: 0,
-        duration: 500,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    const backAction = () => {
-      navigation.goBack();
-      return true;
-    };
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction,
-    );
-
-    return () => backHandler.remove();
+    checkCameraPermission();
   }, []);
 
-  const onLogOut = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Log out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await AsyncStorage.multiRemove([
-              'isLoggedIn',
-              'teacherData',
-              'userToken',
-            ]);
-            navigation.navigate('Login');
-            // if (route.params?.setIsLoggedIn) {
-            //   route.params.setIsLoggedIn(false);
-            // }
-          } catch (error) {
-            console.error('Logout error:', error);
-          }
-        },
-      },
-    ]);
+  const checkCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      );
+      setHasCameraPermission(granted);
+      return granted;
+    } catch (err) {
+      console.log('Permission check error:', err);
+      return false;
+    }
   };
 
-  const profileItems = [
-    {
-      icon: 'email',
-      title: 'Email',
-      value: 'tzedubridge@thinkzone.in',
-    },
-    {
-      icon: 'phone',
-      title: 'Phone',
-      value: '+91 9178198947',
-    },
-    {
-      icon: 'location-on',
-      title: 'Location',
-      value: 'Cuttack, Odisha',
-    },
-    {
-      icon: 'business',
-      title: 'Organization',
-      value: 'ThinkZone Edubridge',
-    },
-  ];
+  const requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'This app needs camera access to scan documents',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        },
+      );
+      const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
+      setHasCameraPermission(isGranted);
+      return isGranted;
+    } catch (err) {
+      console.log('Permission request error:', err);
+      return false;
+    }
+  };
+
+  const detectTextFromImage = async uri => {
+    try {
+      const result = await TextRecognition.recognize(uri);
+      setDetectedText(result?.text || 'No text detected');
+    } catch (error) {
+      console.error('OCR error:', error);
+      setDetectedText('Text detection failed');
+    }
+  };
+
+  const scanDocument = async () => {
+    try {
+      if (!hasCameraPermission) {
+        const permissionGranted = await requestCameraPermission();
+        if (!permissionGranted) {
+          Alert.alert(
+            'Permission Required',
+            'You need to grant camera permissions to scan documents',
+          );
+          return;
+        }
+      }
+
+      setIsScanning(true);
+      console.log('Opening Android document scanner...');
+
+      const {scannedImages} = await DocumentScanner.scanDocument({
+        responseType: 'uri',
+        quality: 1.0,
+        letUserAdjustCrop: true,
+        maxNumDocuments: 1,
+      });
+
+      console.log('Scanner completed with results:', scannedImages);
+
+      if (scannedImages && scannedImages.length > 0) {
+        const uri = scannedImages[0];
+        setImageUri(uri);
+
+        // Get image dimensions first
+        const dimensions = await getImageDimensions(uri);
+        setImageDimensions(dimensions);
+
+        // Split the image into 6 equal vertical pieces
+        const pieces = splitImageIntoPieces(
+          uri,
+          dimensions.width,
+          dimensions.height,
+        );
+        setImagePieces(pieces);
+
+        // Perform text recognition on the full image
+        await detectTextFromImage(uri);
+      } else {
+        console.log('User cancelled document scan');
+      }
+    } catch (error) {
+      console.error('Document scan error:', error);
+      Alert.alert(
+        'Scanner Error',
+        error.message || 'Failed to open document scanner. Please try again.',
+      );
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const getImageDimensions = uri => {
+    return new Promise(resolve => {
+      Image.getSize(uri, (width, height) => {
+        resolve({width, height});
+      });
+    });
+  };
+
+  const splitImageIntoPieces = async (uri, imgWidth, imgHeight) => {
+    const pieceWidth = imgWidth / 6;
+    const pieces = [];
+
+    for (let i = 0; i < 6; i++) {
+      try {
+        const croppedUri = await new Promise((resolve, reject) => {
+          ImageEditor.cropImage(
+            uri,
+            {
+              offset: {x: i * pieceWidth, y: 0},
+              size: {width: pieceWidth, height: imgHeight},
+            },
+            croppedUri => resolve(croppedUri),
+            error => reject(error),
+          );
+        });
+
+        pieces.push({
+          uri: croppedUri,
+          label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
+            (i + 1) * 16.66,
+          )}%)`,
+        });
+      } catch (error) {
+        console.error('Error cropping image:', error);
+      }
+    }
+
+    return pieces;
+  };
+
+  const renderImagePiece = (piece, index) => {
+    // Calculate display dimensions while maintaining aspect ratio
+    const displayHeight = 150;
+    const aspectRatio = piece.width / piece.originalHeight;
+    const displayWidth = displayHeight * aspectRatio;
+
+    return (
+      <View key={index} style={styles.pieceContainer}>
+        <View
+          style={[
+            styles.pieceImageWrapper,
+            {width: displayWidth, height: displayHeight},
+          ]}>
+          <Image
+            source={{uri: piece.uri}}
+            style={[
+              styles.pieceImage,
+              {
+                width:
+                  piece.originalWidth * (displayHeight / piece.originalHeight),
+                height: displayHeight,
+                left: -piece.crop.x * (displayHeight / piece.originalHeight),
+              },
+            ]}
+            resizeMode="cover"
+          />
+        </View>
+        <Text style={styles.pieceLabel}>{piece.label}</Text>
+      </View>
+    );
+  };
+
+  const handleRecapture = () => {
+    setImageUri(null);
+    setImagePieces([]);
+    setDetectedText('');
+    scanDocument();
+  };
 
   return (
-    <View style={[styles.container, {backgroundColor: colors.background}]}>
-      <LinearGradient
-        colors={isDarkMode ? ['#121212', '#1e1e1e'] : ['#f8f9fa', '#ffffff']}
-        style={styles.gradientBackground}
-      />
+    <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <Text style={styles.header}>Android Document Scanner</Text>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Animated.View
-          style={[
-            styles.profileHeader,
-            {
-              opacity: opacityValue,
-              transform: [{scale: scaleValue}],
-            },
-          ]}>
-          <View style={styles.avatarContainer}>
-            <LinearGradient
-              colors={
-                isDarkMode ? ['#bb86fc', '#3700b3'] : ['#6200ee', '#3700b3']
-              }
-              style={styles.avatarGradient}>
-              <Image
-                source={require('../assets/img/user.png')}
-                style={styles.profileImage}
-              />
-            </LinearGradient>
-            <View style={styles.verifiedBadge}>
-              <Icon name="verified" size={24} color="#4CAF50" />
-            </View>
-          </View>
-
-          <Text style={[styles.name, {color: colors.text}]}>
-            ThinkZone Edubridge
-          </Text>
-          <Text style={[styles.title, {color: colors.accent}]}>
-            Education Partner
-          </Text>
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.profileCard,
-            {
-              backgroundColor: colors.card,
-              opacity: opacityValue,
-              transform: [{translateY: translateYValue}],
-            },
-          ]}>
-          {profileItems.map((item, index) => (
-            <View key={index}>
-              <View style={styles.profileItem}>
-                <View style={styles.iconContainer}>
-                  <Icon
-                    name={item.icon}
-                    size={24}
-                    color={colors.accent}
-                    style={styles.icon}
-                  />
-                </View>
-                <View style={styles.profileTextContainer}>
-                  <Text style={[styles.itemTitle, {color: colors.subText}]}>
-                    {item.title}
-                  </Text>
-                  <Text style={[styles.itemValue, {color: colors.text}]}>
-                    {item.value}
-                  </Text>
-                </View>
-              </View>
-              {index < profileItems.length - 1 && (
-                <View
-                  style={[styles.divider, {backgroundColor: colors.divider}]}
-                />
-              )}
-            </View>
-          ))}
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.actionsContainer,
-            {
-              opacity: opacityValue,
-              transform: [{translateY: translateYValue}],
-            },
-          ]}>
-          {/* <View
-            style={[
-              styles.actionButton,
-              {backgroundColor: colors.card, borderColor: colors.divider},
-            ]}>
-            <Icon name="edit" size={20} color={colors.accent} />
-            <Text style={[styles.actionButtonText, {color: colors.text}]}>
-              Edit Profile
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.actionButton,
-              {backgroundColor: colors.card, borderColor: colors.divider},
-            ]}>
-            <Icon name="settings" size={20} color={colors.accent} />
-            <Text style={[styles.actionButtonText, {color: colors.text}]}>
-              Settings
-            </Text>
-          </View> */}
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.logoutContainer,
-            {
-              opacity: opacityValue,
-              transform: [{translateY: translateYValue}],
-            },
-          ]}>
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.logoutButton, {backgroundColor: colors.card}]}
-            onPress={onLogOut}>
-            <Icon name="logout" size={20} color="#f44336" />
-            <Text style={[styles.logoutButtonText, {color: '#f44336'}]}>
-              Log out
-            </Text>
+            style={[
+              styles.button,
+              styles.scanButton,
+              isScanning && styles.scanButtonDisabled,
+            ]}
+            onPress={scanDocument}
+            disabled={isScanning}>
+            {isScanning ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>
+                {imageUri ? 'Scan New Document' : '📷 Scan Document'}
+              </Text>
+            )}
           </TouchableOpacity>
-        </Animated.View>
+        </View>
+
+        {imageUri && (
+          <View style={styles.resultContainer}>
+            {/* Full image preview */}
+            <Text style={styles.sectionTitle}>Full Document:</Text>
+            <Image
+              source={{uri: imageUri}}
+              style={[
+                styles.scannedImage,
+                {aspectRatio: imageDimensions.width / imageDimensions.height},
+              ]}
+              resizeMode="contain"
+            />
+
+            {/* Image pieces grid */}
+            <Text style={styles.sectionTitle}>
+              Document Strips (6 Equal Vertical Sections):
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+              <View style={styles.piecesRow}>
+                {imagePieces.map((piece, index) =>
+                  renderImagePiece(piece, index),
+                )}
+              </View>
+            </ScrollView>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.recaptureButton]}
+                onPress={handleRecapture}>
+                <Text style={styles.actionButtonText}>Retake</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={() =>
+                  Alert.alert('Success', 'Document scanned successfully!')
+                }>
+                <Text style={styles.actionButtonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.textResultContainer}>
+              <Text style={styles.sectionTitle}>Extracted Text:</Text>
+              <View style={styles.textScrollContainer}>
+                <ScrollView
+                  style={styles.textScrollView}
+                  nestedScrollEnabled={true}>
+                  <Text style={styles.detectedText}>
+                    {detectedText || 'Processing text...'}
+                  </Text>
+                </ScrollView>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '40%',
-  },
-  scrollContainer: {
+  scrollContent: {
+    padding: 20,
     paddingBottom: 40,
+    minHeight: height,
   },
-  profileHeader: {
-    alignItems: 'center',
-    paddingVertical: 30,
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    textAlign: 'center',
+    marginVertical: 20,
   },
-  avatarContainer: {
-    position: 'relative',
+  buttonContainer: {
+    width: '100%',
     marginBottom: 20,
   },
-  avatarGradient: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
+  button: {
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 2,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 5,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 10,
-  },
-  profileCard: {
-    borderRadius: 16,
-    marginHorizontal: 20,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  profileItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+  scanButton: {
+    backgroundColor: '#00BCD4',
   },
-  iconContainer: {
-    width: 40,
-    alignItems: 'center',
+  scanButtonDisabled: {
+    backgroundColor: '#B2EBF2',
   },
-  profileTextContainer: {
-    flex: 1,
-  },
-  itemTitle: {
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  itemValue: {
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
     fontSize: 16,
-    fontWeight: '500',
   },
-  divider: {
-    height: 1,
-    marginLeft: 70,
-    marginRight: 20,
+  resultContainer: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  actionsContainer: {
+  scannedImage: {
+    width: '100%',
+    maxHeight: 300,
+    borderRadius: 8,
+    marginBottom: 15,
+    backgroundColor: '#f5f5f5',
+  },
+  piecesRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+  },
+  pieceContainer: {
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  pieceImageWrapper: {
+    overflow: 'hidden',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  pieceImage: {
+    position: 'absolute',
+  },
+  pieceLabel: {
+    fontSize: 10,
+    color: '#555',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 20,
-    marginTop: 20,
+    marginBottom: 15,
   },
   actionButton: {
-    flex: 1,
-    flexDirection: 'row',
+    padding: 12,
+    borderRadius: 8,
+    width: '48%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginHorizontal: 5,
+  },
+  recaptureButton: {
+    backgroundColor: '#FF3A30',
+  },
+  confirmButton: {
+    backgroundColor: '#4CD964',
   },
   actionButtonText: {
-    marginLeft: 8,
-    fontWeight: '500',
+    color: 'white',
+    fontWeight: '600',
   },
-  logoutContainer: {
-    marginHorizontal: 20,
-    marginTop: 20,
+  textResultContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
   },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(244, 67, 54, 0.3)',
+  textScrollContainer: {
+    maxHeight: 200,
   },
-  logoutButtonText: {
-    marginLeft: 8,
-    fontWeight: '500',
+  textScrollView: {
+    flexGrow: 1,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#34495E',
+  },
+  detectedText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#2C3E50',
   },
 });
 
-export default ProfilePage;
+export default AndroidDocumentScanner;
