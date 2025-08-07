@@ -16,6 +16,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
+import demo1 from '../components/demo1.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
