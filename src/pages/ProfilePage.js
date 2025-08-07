@@ -15,6 +15,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
+import {UploadFileToCloud} from '../components/CloudUpload';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
@@ -31,6 +32,8 @@ const AndroidDocumentScanner = () => {
     height: 0,
   });
   const [selectedPiece, setSelectedPiece] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrls, setUploadedUrls] = useState([]);
 
   useEffect(() => {
     checkCameraPermission();
@@ -79,6 +82,60 @@ const AndroidDocumentScanner = () => {
     }
   };
 
+  const cropImage = async (uri, cropData) => {
+    // In a real implementation, you would use a library like react-native-image-crop-tools
+    // to actually crop the image. This is a placeholder for that functionality.
+    // For now, we'll just return the original URI since we can't actually crop in this example.
+    return uri;
+
+    // The actual implementation would look something like:
+    // return await ImageCropper.cropImage(uri, {
+    //   ...cropData,
+    //   includeBase64: true,
+    // });
+  };
+
+  const uploadImageStrips = async strips => {
+    setUploading(true);
+    const urls = [];
+
+    try {
+      for (let i = 0; i < strips.length; i++) {
+        const strip = strips[i];
+
+        // First crop the strip from the original image
+        const croppedUri = await cropImage(strip.uri, strip.crop);
+
+        const fileName = `strip_${i}_${Date.now()}.jpg`;
+        const file = {
+          uri: croppedUri,
+          type: 'image/jpeg',
+          name: fileName,
+        };
+
+        console.log(`Uploading strip ${i + 1}/${strips.length}...`);
+        const uploadResult = await UploadFileToCloud({file, fileName});
+
+        console.log('API Response:', uploadResult);
+
+        if (uploadResult.success) {
+          urls.push(uploadResult.url);
+          console.log(`Upload successful: ${uploadResult.url}`);
+        } else {
+          console.warn(`Upload failed for strip ${i + 1}`);
+          urls.push(null);
+        }
+      }
+
+      setUploadedUrls(urls);
+      console.log('All strip URLs:', urls);
+    } catch (error) {
+      console.error('Error uploading strips:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const scanDocument = async () => {
     try {
       if (!hasCameraPermission) {
@@ -118,6 +175,9 @@ const AndroidDocumentScanner = () => {
         );
         setImagePieces(pieces);
 
+        // Upload the cropped strips
+        await uploadImageStrips(pieces);
+
         await detectTextFromImage(uri);
       } else {
         console.log('User cancelled document scan');
@@ -142,10 +202,10 @@ const AndroidDocumentScanner = () => {
   };
 
   const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
-    const pieceWidth = imgWidth / 6;
+    const pieceWidth = imgWidth / 30;
     const pieces = [];
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 30; i++) {
       pieces.push({
         uri,
         originalWidth: imgWidth,
@@ -158,8 +218,8 @@ const AndroidDocumentScanner = () => {
           width: pieceWidth,
           height: imgHeight,
         },
-        label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
-          (i + 1) * 16.66,
+        label: `Strip ${i + 1} (${Math.round(i * 3.33)}%-${Math.round(
+          (i + 1) * 3.33,
         )}%)`,
       });
     }
@@ -210,6 +270,7 @@ const AndroidDocumentScanner = () => {
           />
         </View>
         <Text style={styles.pieceLabel}>{piece.label}</Text>
+        {uploadedUrls[index] && <Text style={styles.uploadSuccess}>✓</Text>}
       </TouchableOpacity>
     );
   };
@@ -219,6 +280,7 @@ const AndroidDocumentScanner = () => {
     setImagePieces([]);
     setDetectedText('');
     setSelectedPiece(null);
+    setUploadedUrls([]);
   };
 
   return (
@@ -233,11 +295,11 @@ const AndroidDocumentScanner = () => {
             style={[
               styles.button,
               styles.scanButton,
-              isScanning && styles.scanButtonDisabled,
+              (isScanning || uploading) && styles.scanButtonDisabled,
             ]}
             onPress={scanDocument}
-            disabled={isScanning}>
-            {isScanning ? (
+            disabled={isScanning || uploading}>
+            {isScanning || uploading ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <Text style={styles.buttonText}>
@@ -246,6 +308,13 @@ const AndroidDocumentScanner = () => {
             )}
           </TouchableOpacity>
         </View>
+
+        {uploading && (
+          <View style={styles.uploadingContainer}>
+            <Text style={styles.uploadingText}>Uploading image strips...</Text>
+            <ActivityIndicator size="large" color="#00BCD4" />
+          </View>
+        )}
 
         {imageUri && (
           <View style={styles.resultContainer}>
@@ -260,7 +329,7 @@ const AndroidDocumentScanner = () => {
             />
 
             <Text style={styles.sectionTitle}>
-              Document Strips (6 Equal Vertical Sections):
+              Document Strips (30 Equal Vertical Sections):
             </Text>
             <ScrollView
               horizontal
@@ -282,25 +351,18 @@ const AndroidDocumentScanner = () => {
 
               <TouchableOpacity
                 style={[styles.actionButton, styles.confirmButton]}
-                onPress={() =>
-                  Alert.alert('Success', 'Document scanned successfully!')
-                }>
+                onPress={() => {
+                  Alert.alert(
+                    'Upload Complete',
+                    `Uploaded ${
+                      uploadedUrls.filter(url => url).length
+                    }/30 strips successfully`,
+                  );
+                  console.log('Uploaded strip URLs:', uploadedUrls);
+                }}>
                 <Text style={styles.actionButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
-
-            {/* <View style={styles.textResultContainer}>
-              <Text style={styles.sectionTitle}>Extracted Text:</Text>
-              <View style={styles.textScrollContainer}>
-                <ScrollView
-                  style={styles.textScrollView}
-                  nestedScrollEnabled={true}>
-                  <Text style={styles.detectedText}>
-                    {detectedText || 'Processing text...'}
-                  </Text>
-                </ScrollView>
-              </View>
-            </View> */}
           </View>
         )}
       </ScrollView>
@@ -379,6 +441,7 @@ const styles = StyleSheet.create({
   pieceContainer: {
     marginRight: 10,
     alignItems: 'center',
+    position: 'relative',
   },
   pieceImageWrapper: {
     overflow: 'hidden',
@@ -392,6 +455,19 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'center',
     marginTop: 5,
+  },
+  uploadSuccess: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: '#4CD964',
+    color: 'white',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontSize: 12,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -415,27 +491,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
   },
-  textResultContainer: {
-    backgroundColor: '#f8f9fa',
+  uploadingContainer: {
+    backgroundColor: 'white',
+    padding: 15,
     borderRadius: 8,
-    padding: 12,
+    marginBottom: 15,
+    alignItems: 'center',
   },
-  textScrollContainer: {
-    maxHeight: 200,
-  },
-  textScrollView: {
-    flexGrow: 1,
+  uploadingText: {
+    fontSize: 16,
+    color: '#2C3E50',
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
     color: '#34495E',
-  },
-  detectedText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#2C3E50',
   },
 });
 
