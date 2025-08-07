@@ -32,7 +32,7 @@ function BottomTabsNavigator() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'DocumentScanner') {
+          } else if (route.name === 'Scanner') {
             iconName = focused ? 'book' : 'book-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
@@ -77,7 +77,7 @@ function BottomTabsNavigator() {
       })}>
       <Tab.Screen name="Home" component={HomePage} />
       {/* <Tab.Screen name="TakeQuiz" component={TakeQuiz} /> */}
-      <Tab.Screen name="DocumentScanner" component={DocumentScannerPage} />
+      <Tab.Screen name="Scanner" component={DocumentScannerPage} />
       <Tab.Screen name="Profile" component={ProfilePage} />
       <Tab.Screen name="TimeWindow" component={TimeWindow} />
     </Tab.Navigator>
