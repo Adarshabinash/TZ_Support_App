@@ -52,6 +52,7 @@ const AndroidDocumentScanner = () => {
       return false;
     }
   };
+  console.log('demo1=============>', demo1);
 
   const requestCameraPermission = async () => {
     try {
@@ -348,13 +349,21 @@ const AndroidDocumentScanner = () => {
                       <View>
                         {/* Table Header */}
                         <View style={[styles.tableRow, styles.headerRow]}>
+                          {/* Sl. No. Column */}
                           <View
                             style={[
                               styles.tableHeaderCell,
                               styles.firstColumn,
                             ]}>
-                            <Text style={styles.headerText}></Text>
+                            <Text style={styles.headerText}>Sl. No.</Text>
                           </View>
+
+                          {/* Skill Header */}
+                          <View style={styles.tableHeaderCell}>
+                            <Text style={styles.headerText}>Skill</Text>
+                          </View>
+
+                          {/* Index Headers (1 to 30) */}
                           {Array.from({length: 30}).map((_, colIndex) => (
                             <View
                               key={`header-${colIndex}`}
@@ -367,7 +376,7 @@ const AndroidDocumentScanner = () => {
                         </View>
 
                         {/* Table Body */}
-                        {Array.from({length: 12}).map((_, rowIndex) => (
+                        {Array.from({length: 14}).map((_, rowIndex) => (
                           <View
                             key={`row-${rowIndex}`}
                             style={[
@@ -376,12 +385,22 @@ const AndroidDocumentScanner = () => {
                                 ? styles.evenRow
                                 : styles.oddRow,
                             ]}>
+                            {/* Sl. No. Cell */}
                             <View
                               style={[styles.tableCell, styles.firstColumn]}>
                               <Text style={styles.cellText}>
                                 {rowIndex + 1}
                               </Text>
                             </View>
+
+                            {/* Skill Cell */}
+                            <View style={styles.tableCell}>
+                              <Text style={styles.cellText}>
+                                Skill {rowIndex + 1}
+                              </Text>
+                            </View>
+
+                            {/* Data Cells */}
                             {Array.from({length: 30}).map((_, colIndex) => (
                               <View
                                 key={`cell-${rowIndex}-${colIndex}`}
