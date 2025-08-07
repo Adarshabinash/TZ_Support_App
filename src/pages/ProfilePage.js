@@ -240,6 +240,11 @@ const AndroidDocumentScanner = () => {
     );
   };
 
+  const symbolMap = {
+    star: '⭐',
+    plus: '➕',
+    triangle: '🔺',
+  };
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
       <ScrollView
@@ -339,17 +344,13 @@ const AndroidDocumentScanner = () => {
             </View>
 
             <View style={styles.modalBody}>
-              {/* Results Table */}
               <View style={styles.tableContainer}>
                 <View style={styles.tableWrapper}>
-                  {/* Horizontal Scroll for columns */}
                   <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                    {/* Vertical Scroll for rows */}
                     <ScrollView showsVerticalScrollIndicator={true}>
                       <View>
                         {/* Table Header */}
                         <View style={[styles.tableRow, styles.headerRow]}>
-                          {/* Sl. No. Column */}
                           <View
                             style={[
                               styles.tableHeaderCell,
@@ -357,26 +358,20 @@ const AndroidDocumentScanner = () => {
                             ]}>
                             <Text style={styles.headerText}>Sl. No.</Text>
                           </View>
-
-                          {/* Skill Header */}
                           <View style={styles.tableHeaderCell}>
                             <Text style={styles.headerText}>Skill</Text>
                           </View>
-
-                          {/* Index Headers (1 to 30) */}
-                          {Array.from({length: 30}).map((_, colIndex) => (
+                          {Array.from({length: 30}).map((_, i) => (
                             <View
-                              key={`header-${colIndex}`}
+                              key={`header-${i}`}
                               style={styles.tableHeaderCell}>
-                              <Text style={styles.headerText}>
-                                {colIndex + 1}
-                              </Text>
+                              <Text style={styles.headerText}>{i + 1}</Text>
                             </View>
                           ))}
                         </View>
 
                         {/* Table Body */}
-                        {Array.from({length: 14}).map((_, rowIndex) => (
+                        {demo1?.result.map((skillRow, rowIndex) => (
                           <View
                             key={`row-${rowIndex}`}
                             style={[
@@ -385,28 +380,23 @@ const AndroidDocumentScanner = () => {
                                 ? styles.evenRow
                                 : styles.oddRow,
                             ]}>
-                            {/* Sl. No. Cell */}
                             <View
                               style={[styles.tableCell, styles.firstColumn]}>
                               <Text style={styles.cellText}>
                                 {rowIndex + 1}
                               </Text>
                             </View>
-
-                            {/* Skill Cell */}
                             <View style={styles.tableCell}>
                               <Text style={styles.cellText}>
                                 Skill {rowIndex + 1}
                               </Text>
                             </View>
-
-                            {/* Data Cells */}
-                            {Array.from({length: 30}).map((_, colIndex) => (
+                            {skillRow.roll.map(([index, value], colIndex) => (
                               <View
                                 key={`cell-${rowIndex}-${colIndex}`}
                                 style={styles.tableCell}>
                                 <Text style={styles.cellText}>
-                                  {Math.floor(Math.random() * 100)}
+                                  {symbolMap[value]}
                                 </Text>
                               </View>
                             ))}
