@@ -13,19 +13,43 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {ScrollView} from 'react-native-gesture-handler';
-
 const userId = 'user_123';
 const examId = 'demo_exam_001';
 const getKey = suffix => `${examId}_${userId}_${suffix}`;
 
-const EXAM_START = new Date('2025-06-26T15:04:30');
-const EXAM_END = new Date('2025-06-26T15:05:00');
-
 const TimeWindow = () => {
+  const EXAM_START = new Date('2025-06-26T18:29:00');
+  const EXAM_END = new Date('2025-06-26T19:33:00');
+
   const [status, setStatus] = useState('loading');
   const [remainingSeconds, setRemainingSeconds] = useState(null);
   const [openTestModal, setOpenTestModal] = useState(false);
+  const [halfAlertShown, setHalfAlertShown] = useState(false);
+  const [thirtyMinAlertShown, setThirtyMinAlertShown] = useState(false);
+  const [fiveMinAlertShown, setFiveMinAlertShown] = useState(false);
 
+  const examDuration = Math.floor((EXAM_END - EXAM_START) / 1000);
+
+  useEffect(() => {
+    if (remainingSeconds === null || status !== 'active') return;
+    const halfTime = Math.floor(examDuration / 2);
+    const lastThirtyMins = 1800;
+    const lastFiveMins = 300;
+    if (!halfAlertShown && remainingSeconds === halfTime) {
+      Alert.alert('⏱️ Half Time!', "You're halfway through the exam.");
+      setHalfAlertShown(true);
+    }
+
+    if (!thirtyMinAlertShown && remainingSeconds === lastThirtyMins) {
+      Alert.alert('⏳ 30 Minutes Left', 'Hurry up. Now only 30 mins are left');
+      setThirtyMinAlertShown(true);
+    }
+
+    if (!fiveMinAlertShown && remainingSeconds === lastFiveMins) {
+      Alert.alert('⚠️ 5 Minutes Remaining', 'Only 5 mins more');
+      setFiveMinAlertShown(true);
+    }
+  }, [remainingSeconds]);
   const handleOpenTest = () => {
     setOpenTestModal(true);
   };
@@ -34,7 +58,7 @@ const TimeWindow = () => {
     if (openTestModal) {
       Alert.alert(
         '⌛ Are you sure?',
-        'Do you want to go back? The timer will be still running.',
+        'Do you want to go back? The timer will still be running.',
         [
           {
             text: 'Cancel',
@@ -154,8 +178,6 @@ const TimeWindow = () => {
         });
       }, 1000);
       return () => clearInterval(interval);
-    } else if (status === 'active' && remainingSeconds < 0) {
-      setOpenTestModal(false);
     }
   }, [status, remainingSeconds]);
 
