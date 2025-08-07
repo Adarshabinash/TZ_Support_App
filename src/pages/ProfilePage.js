@@ -11,6 +11,7 @@ import {
   Dimensions,
   ActivityIndicator,
   LogBox,
+  Modal,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
@@ -31,6 +32,8 @@ const AndroidDocumentScanner = () => {
     height: 0,
   });
   const [selectedPiece, setSelectedPiece] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     checkCameraPermission();
@@ -142,9 +145,8 @@ const AndroidDocumentScanner = () => {
   };
 
   const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
-    const pieceWidth = imgWidth / 30; // Divide into 30 vertical pieces
+    const pieceWidth = imgWidth / 30;
     const pieces = [];
-    console.log('pieces======>', pieces);
 
     for (let i = 0; i < 30; i++) {
       const percentageStart = Math.round((i / 30) * 100);
@@ -173,10 +175,30 @@ const AndroidDocumentScanner = () => {
     setSelectedPiece(selectedPiece === index ? null : index);
   };
 
+  const handleRecapture = () => {
+    setImageUri(null);
+    setImagePieces([]);
+    setDetectedText('');
+    setSelectedPiece(null);
+  };
+
+  const handleConfirm = () => {
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      setShowSuccessModal(true);
+    }, 5000);
+  };
+
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
   const renderImagePiece = (piece, index) => {
     const isSelected = selectedPiece === index;
-    const normalHeight = 80; // Reduced height for 30 pieces
-    const selectedHeight = 200; // Height when selected
+    const normalHeight = 80;
+    const selectedHeight = 200;
     const displayHeight = isSelected ? selectedHeight : normalHeight;
     const aspectRatio = piece.width / piece.originalHeight;
     const displayWidth = displayHeight * aspectRatio;
@@ -214,13 +236,6 @@ const AndroidDocumentScanner = () => {
         <Text style={styles.pieceLabel}>{piece.label}</Text>
       </TouchableOpacity>
     );
-  };
-
-  const handleRecapture = () => {
-    setImageUri(null);
-    setImagePieces([]);
-    setDetectedText('');
-    setSelectedPiece(null);
   };
 
   return (
@@ -284,10 +299,13 @@ const AndroidDocumentScanner = () => {
 
               <TouchableOpacity
                 style={[styles.actionButton, styles.confirmButton]}
-                onPress={() =>
-                  Alert.alert('Success', 'Document scanned successfully!')
-                }>
-                <Text style={styles.actionButtonText}>Confirm</Text>
+                onPress={handleConfirm}
+                disabled={isProcessing}>
+                {isProcessing ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.actionButtonText}>Confirm</Text>
+                )}
               </TouchableOpacity>
             </View>
 
@@ -306,6 +324,89 @@ const AndroidDocumentScanner = () => {
           </View>
         )}
       </ScrollView>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeSuccessModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Scan Results</Text>
+            </View>
+
+            <View style={styles.modalBody}>
+              {/* Results Table */}
+              <View style={styles.tableContainer}>
+                <View style={styles.tableWrapper}>
+                  {/* Horizontal Scroll for columns */}
+                  <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                    {/* Vertical Scroll for rows */}
+                    <ScrollView showsVerticalScrollIndicator={true}>
+                      <View>
+                        {/* Table Header */}
+                        <View style={[styles.tableRow, styles.headerRow]}>
+                          <View
+                            style={[
+                              styles.tableHeaderCell,
+                              styles.firstColumn,
+                            ]}>
+                            <Text style={styles.headerText}></Text>
+                          </View>
+                          {Array.from({length: 30}).map((_, colIndex) => (
+                            <View
+                              key={`header-${colIndex}`}
+                              style={styles.tableHeaderCell}>
+                              <Text style={styles.headerText}>
+                                {colIndex + 1}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+
+                        {/* Table Body */}
+                        {Array.from({length: 12}).map((_, rowIndex) => (
+                          <View
+                            key={`row-${rowIndex}`}
+                            style={[
+                              styles.tableRow,
+                              rowIndex % 2 === 0
+                                ? styles.evenRow
+                                : styles.oddRow,
+                            ]}>
+                            <View
+                              style={[styles.tableCell, styles.firstColumn]}>
+                              <Text style={styles.cellText}>
+                                {rowIndex + 1}
+                              </Text>
+                            </View>
+                            {Array.from({length: 30}).map((_, colIndex) => (
+                              <View
+                                key={`cell-${rowIndex}-${colIndex}`}
+                                style={styles.tableCell}>
+                                <Text style={styles.cellText}>
+                                  {Math.floor(Math.random() * 100)}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={closeSuccessModal}>
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -438,6 +539,127 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: '#2C3E50',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    height: '80%', // Increased modal height
+    backgroundColor: 'white',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    backgroundColor: '#00BCD4',
+    padding: 15,
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalBody: {
+    padding: 20,
+    alignItems: 'center',
+    flex: 1, // Make the body take up all available space
+  },
+  successIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#4CD964',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  successIconText: {
+    color: 'white',
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#333',
+    lineHeight: 22,
+  },
+  modalButton: {
+    backgroundColor: '#00BCD4',
+    padding: 15,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  tableContainer: {
+    flex: 1, // Takes all available space in modal body
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+  },
+  horizontalScroll: {
+    flexDirection: 'row',
+  },
+  tableWrapper: {
+    flex: 1,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 40, // Minimum row height
+  },
+  headerRow: {
+    backgroundColor: '#f2f2f2',
+  },
+  tableHeaderCell: {
+    padding: 8,
+    minWidth: 80,
+    height: 40, // Fixed header height
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#e6e6e6',
+    justifyContent: 'center',
+  },
+  tableCell: {
+    padding: 8,
+    minWidth: 80,
+    height: 40, // Fixed cell height
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+  },
+  firstColumn: {
+    backgroundColor: '#d9edf7',
+  },
+  headerText: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  cellText: {
+    textAlign: 'center',
+  },
+  evenRow: {
+    backgroundColor: '#fff',
+  },
+  oddRow: {
+    backgroundColor: '#f9f9f9',
+  },
+  modalButton: {
+    backgroundColor: '#00BCD4',
+    padding: 15,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
