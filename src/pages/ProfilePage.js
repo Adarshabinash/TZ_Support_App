@@ -2,441 +2,231 @@ import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity,
   Image,
-  Alert,
+  TouchableOpacity,
   PermissionsAndroid,
-  ScrollView,
-  Dimensions,
+  Alert,
+  StyleSheet,
   ActivityIndicator,
-  LogBox,
+  ToastAndroid,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import TextRecognition from '@react-native-ml-kit/text-recognition';
-import DocumentScanner from 'react-native-document-scanner-plugin';
+import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
+import {recognize, downloadModel} from '@react-native-ml-kit/text-recognition';
+import RNFS from 'react-native-fs';
+import ImageResizer from 'react-native-image-resizer';
 
-LogBox.ignoreLogs(['ViewPropTypes will be removed']);
-
-const {width, height} = Dimensions.get('window');
-
-const AndroidDocumentScanner = () => {
+const OdiaOCR = () => {
   const [imageUri, setImageUri] = useState(null);
-  const [imagePieces, setImagePieces] = useState([]);
-  const [detectedText, setDetectedText] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
-  const [selectedPiece, setSelectedPiece] = useState(null);
+  const [text, setText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
+  // Pre-download Odia language model
   useEffect(() => {
-    checkCameraPermission();
+    const loadModel = async () => {
+      try {
+        await downloadModel({language: 'or'}); // 'or' = Odia
+        ToastAndroid.show('Odia OCR model loaded!', ToastAndroid.SHORT);
+      } catch (err) {
+        ToastAndroid.show('Failed to load Odia model', ToastAndroid.LONG);
+        console.error('Model error:', err);
+      }
+    };
+    loadModel();
   }, []);
 
-  const checkCameraPermission = async () => {
+  // Request Android permissions
+  const requestPermissions = async () => {
     try {
-      const granted = await PermissionsAndroid.check(
+      const permissions = [
         PermissionsAndroid.PERMISSIONS.CAMERA,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ];
+
+      const granted = await PermissionsAndroid.requestMultiple(permissions);
+      return Object.values(granted).every(
+        status => status === PermissionsAndroid.RESULTS.GRANTED,
       );
-      setHasCameraPermission(granted);
-      return granted;
     } catch (err) {
-      console.log('Permission check error:', err);
+      console.error('Permission error:', err);
+      ToastAndroid.show('Permission denied!', ToastAndroid.LONG);
       return false;
     }
   };
 
-  const requestCameraPermission = async () => {
+  // Improve image quality for OCR
+  const preprocessImage = async uri => {
     try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Camera Permission',
-          message: 'This app needs camera access to scan documents',
-          buttonPositive: 'OK',
-          buttonNegative: 'Cancel',
-        },
-      );
-      const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
-      setHasCameraPermission(isGranted);
-      return isGranted;
-    } catch (err) {
-      console.log('Permission request error:', err);
-      return false;
-    }
-  };
-
-  const detectTextFromImage = async uri => {
-    try {
-      const result = await TextRecognition.recognize(uri);
-      setDetectedText(result?.text || 'No text detected');
-    } catch (error) {
-      console.error('OCR error:', error);
-      setDetectedText('Text detection failed');
-    }
-  };
-
-  const scanDocument = async () => {
-    try {
-      if (!hasCameraPermission) {
-        const permissionGranted = await requestCameraPermission();
-        if (!permissionGranted) {
-          Alert.alert(
-            'Permission Required',
-            'You need to grant camera permissions to scan documents',
-          );
-          return;
-        }
-      }
-
-      setIsScanning(true);
-      console.log('Opening Android document scanner...');
-
-      const {scannedImages} = await DocumentScanner.scanDocument({
-        responseType: 'uri',
-        quality: 1.0,
-        letUserAdjustCrop: true,
-        maxNumDocuments: 1,
-      });
-
-      console.log('Scanner completed with results:', scannedImages);
-
-      if (scannedImages && scannedImages.length > 0) {
-        const uri = scannedImages[0];
-        setImageUri(uri);
-
-        const dimensions = await getImageDimensions(uri);
-        setImageDimensions(dimensions);
-
-        const pieces = splitImageIntoPieces(
-          uri,
-          dimensions.width,
-          dimensions.height,
-        );
-        setImagePieces(pieces);
-
-        await detectTextFromImage(uri);
-      } else {
-        console.log('User cancelled document scan');
-      }
-    } catch (error) {
-      console.error('Document scan error:', error);
-      Alert.alert(
-        'Scanner Error',
-        error.message || 'Failed to open document scanner. Please try again.',
-      );
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  const getImageDimensions = uri => {
-    return new Promise(resolve => {
-      Image.getSize(uri, (width, height) => {
-        resolve({width, height});
-      });
-    });
-  };
-
-  const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
-    const pieceWidth = imgWidth / 6;
-    const pieces = [];
-
-    for (let i = 0; i < 6; i++) {
-      pieces.push({
+      const resizedImage = await ImageResizer.createResizedImage(
         uri,
-        originalWidth: imgWidth,
-        originalHeight: imgHeight,
-        width: pieceWidth,
-        height: imgHeight,
-        crop: {
-          x: i * pieceWidth,
-          y: 0,
-          width: pieceWidth,
-          height: imgHeight,
-        },
-        label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
-          (i + 1) * 16.66,
-        )}%)`,
-      });
+        1200, // width
+        1600, // height
+        'JPEG',
+        85, // quality
+        0, // rotation
+        null, // outputPath (cache)
+        false, // no base64
+      );
+      return resizedImage.uri;
+    } catch (err) {
+      console.warn('Image processing failed, using original:', err);
+      return uri;
     }
-
-    return pieces;
   };
 
-  const handlePiecePress = index => {
-    setSelectedPiece(selectedPiece === index ? null : index);
+  // Handle image selection
+  const handleImage = async source => {
+    if (!(await requestPermissions())) return;
+
+    setIsProcessing(true);
+    setText('');
+
+    try {
+      const picker = source === 'camera' ? launchCamera : launchImageLibrary;
+      const result = await picker({
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      });
+
+      if (result.didCancel || !result.assets?.[0]?.uri) {
+        setIsProcessing(false);
+        return;
+      }
+
+      const uri = result.assets[0].uri;
+      setImageUri(uri);
+
+      // Preprocess and run OCR
+      const processedUri = await preprocessImage(uri);
+      await runOCR(processedUri);
+    } catch (err) {
+      console.error('Image error:', err);
+      ToastAndroid.show('Failed to process image', ToastAndroid.LONG);
+      setIsProcessing(false);
+    }
   };
 
-  const renderImagePiece = (piece, index) => {
-    const isSelected = selectedPiece === index;
-    const normalHeight = 150;
-    const selectedHeight = 300;
-    const displayHeight = isSelected ? selectedHeight : normalHeight;
-    const aspectRatio = piece.width / piece.originalHeight;
-    const displayWidth = displayHeight * aspectRatio;
+  // Run OCR on the image
+  const runOCR = async uri => {
+    try {
+      let filePath = uri;
+      if (uri.startsWith('content://')) {
+        filePath = `${RNFS.CachesDirectoryPath}/${Date.now()}.jpg`;
+        await RNFS.copyFile(uri, filePath);
+      }
 
-    return (
-      <TouchableOpacity
-        key={index}
-        style={styles.pieceContainer}
-        onPress={() => handlePiecePress(index)}
-        activeOpacity={0.7}>
-        <View
-          style={[
-            styles.pieceImageWrapper,
-            {
-              width: displayWidth,
-              height: displayHeight,
-              borderColor: isSelected ? '#00BCD4' : '#ddd',
-              borderWidth: isSelected ? 2 : 1,
-            },
-          ]}>
-          <Image
-            source={{uri: piece.uri}}
-            style={[
-              styles.pieceImage,
-              {
-                width:
-                  piece.originalWidth * (displayHeight / piece.originalHeight),
-                height: displayHeight,
-                left: -piece.crop.x * (displayHeight / piece.originalHeight),
-              },
-            ]}
-            resizeMode="cover"
-          />
-        </View>
-        <Text style={styles.pieceLabel}>{piece.label}</Text>
-      </TouchableOpacity>
-    );
-  };
+      const result = await recognize({
+        imagePath: filePath,
+        language: 'or', // Odia language code
+      });
 
-  const handleRecapture = () => {
-    setImageUri(null);
-    setImagePieces([]);
-    setDetectedText('');
-    setSelectedPiece(null);
+      // Clean Odia text
+      const odiaText = result.text
+        .replace(/[^\u0B00-\u0B7F\s]/g, '') // Remove non-Odia chars
+        .replace(/\s+/g, ' ') // Collapse spaces
+        .trim();
+
+      setText(odiaText || 'No Odia text detected');
+    } catch (err) {
+      console.error('OCR Error:', err);
+      ToastAndroid.show('OCR failed!', ToastAndroid.LONG);
+      setText('Failed to recognize text');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <Text style={styles.header}>Android Document Scanner</Text>
+    <View style={styles.container}>
+      <Text style={styles.heading}>📖 Odia OCR (Android)</Text>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.scanButton,
-              isScanning && styles.scanButtonDisabled,
-            ]}
-            onPress={scanDocument}
-            disabled={isScanning}>
-            {isScanning ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>
-                {imageUri ? 'Scan New Document' : '📷 Scan Document'}
-              </Text>
-            )}
-          </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.button, isProcessing && styles.disabledButton]}
+        onPress={() => handleImage('gallery')}
+        disabled={isProcessing}>
+        <Text style={styles.buttonText}>
+          {isProcessing ? 'Processing...' : 'Select Image'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, isProcessing && styles.disabledButton]}
+        onPress={() => handleImage('camera')}
+        disabled={isProcessing}>
+        <Text style={styles.buttonText}>
+          {isProcessing ? 'Processing...' : 'Take Photo'}
+        </Text>
+      </TouchableOpacity>
+
+      {isProcessing && <ActivityIndicator size="large" color="#3498db" />}
+
+      {imageUri && <Image source={{uri: imageUri}} style={styles.image} />}
+
+      {text ? (
+        <View style={styles.textContainer}>
+          <Text style={styles.textLabel}>Extracted Odia Text:</Text>
+          <Text style={styles.textContent} selectable>
+            {text}
+          </Text>
         </View>
-
-        {imageUri && (
-          <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Full Document:</Text>
-            <Image
-              source={{uri: imageUri}}
-              style={[
-                styles.scannedImage,
-                {aspectRatio: imageDimensions.width / imageDimensions.height},
-              ]}
-              resizeMode="contain"
-            />
-
-            <Text style={styles.sectionTitle}>
-              Document Strips (6 Equal Vertical Sections):
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={true}
-              contentContainerStyle={styles.piecesScrollContent}>
-              <View style={styles.piecesRow}>
-                {imagePieces.map((piece, index) =>
-                  renderImagePiece(piece, index),
-                )}
-              </View>
-            </ScrollView>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.recaptureButton]}
-                onPress={handleRecapture}>
-                <Text style={styles.actionButtonText}>Retake</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.actionButton, styles.confirmButton]}
-                onPress={() =>
-                  Alert.alert('Success', 'Document scanned successfully!')
-                }>
-                <Text style={styles.actionButtonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.textResultContainer}>
-              <Text style={styles.sectionTitle}>Extracted Text:</Text>
-              <View style={styles.textScrollContainer}>
-                <ScrollView
-                  style={styles.textScrollView}
-                  nestedScrollEnabled={true}>
-                  <Text style={styles.detectedText}>
-                    {detectedText || 'Processing text...'}
-                  </Text>
-                </ScrollView>
-              </View>
-            </View>
-          </View>
-        )}
-      </ScrollView>
-    </LinearGradient>
+      ) : null}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  scrollContent: {
     padding: 20,
-    paddingBottom: 40,
-    minHeight: height,
+    backgroundColor: '#f8f9fa',
   },
-  header: {
-    fontSize: 24,
+  heading: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#2C3E50',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  buttonContainer: {
-    width: '100%',
     marginBottom: 20,
+    textAlign: 'center',
+    color: '#2c3e50',
   },
   button: {
+    backgroundColor: '#3498db',
     padding: 15,
     borderRadius: 8,
-    marginVertical: 10,
+    marginBottom: 15,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  scanButton: {
-    backgroundColor: '#00BCD4',
-  },
-  scanButtonDisabled: {
-    backgroundColor: '#B2EBF2',
+  disabledButton: {
+    backgroundColor: '#95a5a6',
   },
   buttonText: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    fontWeight: 'bold',
   },
-  resultContainer: {
+  image: {
     width: '100%',
-    backgroundColor: 'white',
-    borderRadius: 12,
+    height: 250,
+    resizeMode: 'contain',
+    marginVertical: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  textContainer: {
+    marginTop: 20,
     padding: 15,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  scannedImage: {
-    width: '100%',
-    maxHeight: 300,
+    backgroundColor: '#ecf0f1',
     borderRadius: 8,
-    marginBottom: 15,
-    backgroundColor: '#f5f5f5',
   },
-  piecesScrollContent: {
-    paddingVertical: 10,
+  textLabel: {
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#2c3e50',
   },
-  piecesRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  pieceContainer: {
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  pieceImageWrapper: {
-    overflow: 'hidden',
-    borderRadius: 4,
-  },
-  pieceImage: {
-    position: 'absolute',
-  },
-  pieceLabel: {
-    fontSize: 10,
-    color: '#555',
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  actionButton: {
-    padding: 12,
-    borderRadius: 8,
-    width: '48%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recaptureButton: {
-    backgroundColor: '#FF3A30',
-  },
-  confirmButton: {
-    backgroundColor: '#4CD964',
-  },
-  actionButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  textResultContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
-  },
-  textScrollContainer: {
-    maxHeight: 200,
-  },
-  textScrollView: {
-    flexGrow: 1,
-  },
-  sectionTitle: {
+  textContent: {
     fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#34495E',
-  },
-  detectedText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#2C3E50',
+    lineHeight: 24,
   },
 });
 
-export default AndroidDocumentScanner;
+export default OdiaOCR;
