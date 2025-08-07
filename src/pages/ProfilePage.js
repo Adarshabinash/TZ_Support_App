@@ -16,7 +16,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
-import demo1 from '../components/demo1.json';
+import demo3 from '../components/demo3.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
@@ -52,7 +52,7 @@ const AndroidDocumentScanner = () => {
       return false;
     }
   };
-  console.log('demo1=============>', demo1);
+  // console.log('demo1=============>', demo1);
 
   const requestCameraPermission = async () => {
     try {
@@ -311,7 +311,17 @@ const AndroidDocumentScanner = () => {
                 {isProcessing ? (
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
-                  <Text style={styles.actionButtonText}>Confirm</Text>
+                  <Text style={styles.actionButtonText}>1</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.confirmButton]}
+                onPress={handleConfirm}
+                disabled={isProcessing}>
+                {isProcessing ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.actionButtonText}>2</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -374,7 +384,7 @@ const AndroidDocumentScanner = () => {
                           </View>
 
                           {/* Combined Table Body from all categories */}
-                          {demo1?.result
+                          {demo3?.result
                             ?.flatMap(category => category.output)
                             ?.map((skillRow, rowIndex) => (
                               <View
