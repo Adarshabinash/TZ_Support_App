@@ -77,9 +77,9 @@ function BottomTabsNavigator() {
       })}>
       <Tab.Screen name="Home" component={HomePage} />
       {/* <Tab.Screen name="TakeQuiz" component={TakeQuiz} /> */}
-      <Tab.Screen name="Scanner" component={DocumentScannerPage} />
+      {/* <Tab.Screen name="Scanner" component={DocumentScannerPage} /> */}
       <Tab.Screen name="Profile" component={ProfilePage} />
-      <Tab.Screen name="TimeWindow" component={TimeWindow} />
+      {/* <Tab.Screen name="TimeWindow" component={TimeWindow} /> */}
     </Tab.Navigator>
   );
 }
