@@ -16,6 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import {UploadFileToCloud} from '../components/CloudUpload';
+import RNFS from 'react-native-fs';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
@@ -34,6 +35,8 @@ const AndroidDocumentScanner = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState([]);
+
+  console.log('uploadedUrls-------->', uploadedUrls);
 
   useEffect(() => {
     checkCameraPermission();
@@ -83,16 +86,27 @@ const AndroidDocumentScanner = () => {
   };
 
   const cropImage = async (uri, cropData) => {
-    // In a real implementation, you would use a library like react-native-image-crop-tools
-    // to actually crop the image. This is a placeholder for that functionality.
-    // For now, we'll just return the original URI since we can't actually crop in this example.
-    return uri;
+    try {
+      // Placeholder for actual cropping; using RNFS to read the image data
+      const base64Data = await RNFS.readFile(uri, 'base64');
+      const fileName = `cropped_${Date.now()}.jpg`;
 
-    // The actual implementation would look something like:
-    // return await ImageCropper.cropImage(uri, {
-    //   ...cropData,
-    //   includeBase64: true,
-    // });
+      // Create a File-like object
+      const file = {
+        name: fileName,
+        lastModified: Date.now(),
+        lastModifiedDate: new Date(),
+        type: 'image/jpeg',
+        size: base64Data.length * 0.75, // Approximate size (base64 is ~33% larger than binary)
+        webkitRelativePath: '',
+        uri: `data:image/jpeg;base64,${base64Data}`,
+      };
+
+      return file;
+    } catch (error) {
+      console.error('Crop image error:', error);
+      return {uri}; // Fallback to original URI if cropping fails
+    }
   };
 
   const uploadImageStrips = async strips => {
@@ -103,18 +117,14 @@ const AndroidDocumentScanner = () => {
       for (let i = 0; i < strips.length; i++) {
         const strip = strips[i];
 
-        // First crop the strip from the original image
-        const croppedUri = await cropImage(strip.uri, strip.crop);
-
-        const fileName = `strip_${i}_${Date.now()}.jpg`;
-        const file = {
-          uri: croppedUri,
-          type: 'image/jpeg',
-          name: fileName,
-        };
+        // Crop the strip and get a File object
+        const file = await cropImage(strip.uri, strip.crop);
 
         console.log(`Uploading strip ${i + 1}/${strips.length}...`);
-        const uploadResult = await UploadFileToCloud({file, fileName});
+        const uploadResult = await UploadFileToCloud({
+          file,
+          fileName: file.name,
+        });
 
         console.log('API Response:', uploadResult);
 
