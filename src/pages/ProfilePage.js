@@ -17,9 +17,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 import demo3 from '../components/demo3.json';
+import demo1 from '../components/demo1.json';
+import demo2 from '../components/demo2.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
-
 const {width, height} = Dimensions.get('window');
 
 const AndroidDocumentScanner = () => {
@@ -28,13 +29,12 @@ const AndroidDocumentScanner = () => {
   const [detectedText, setDetectedText] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
+  const [imageDimensions, setImageDimensions] = useState({width: 0, height: 0});
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [activeData, setActiveData] = useState(null); // <- NEW STATE
+  const [processingIndex, setProcessingIndex] = useState(null);
 
   useEffect(() => {
     checkCameraPermission();
@@ -52,7 +52,6 @@ const AndroidDocumentScanner = () => {
       return false;
     }
   };
-  // console.log('demo1=============>', demo1);
 
   const requestCameraPermission = async () => {
     try {
@@ -98,16 +97,12 @@ const AndroidDocumentScanner = () => {
       }
 
       setIsScanning(true);
-      console.log('Opening Android document scanner...');
-
       const {scannedImages} = await DocumentScanner.scanDocument({
         responseType: 'uri',
         quality: 1.0,
         letUserAdjustCrop: true,
         maxNumDocuments: 1,
       });
-
-      console.log('Scanner completed with results:', scannedImages);
 
       if (scannedImages && scannedImages.length > 0) {
         const uri = scannedImages[0];
@@ -124,15 +119,10 @@ const AndroidDocumentScanner = () => {
         setImagePieces(pieces);
 
         await detectTextFromImage(uri);
-      } else {
-        console.log('User cancelled document scan');
       }
     } catch (error) {
       console.error('Document scan error:', error);
-      Alert.alert(
-        'Scanner Error',
-        error.message || 'Failed to open document scanner. Please try again.',
-      );
+      Alert.alert('Scanner Error', error.message || 'Failed to scan document.');
     } finally {
       setIsScanning(false);
     }
@@ -182,62 +172,26 @@ const AndroidDocumentScanner = () => {
     setImagePieces([]);
     setDetectedText('');
     setSelectedPiece(null);
+    setActiveData(null);
+    setProcessingIndex(null);
+    setShowSuccessModal(false);
+    setImageDimensions({width: 0, height: 0});
+    setShowSuccessModal(false);
   };
 
-  const handleConfirm = () => {
-    setIsProcessing(true);
+  const handleConfirm = (dataSource, index) => {
+    setProcessingIndex(index); // track the clicked button
+    setActiveData(null);
 
     setTimeout(() => {
-      setIsProcessing(false);
+      setProcessingIndex(null); // stop loader
+      setActiveData(dataSource);
       setShowSuccessModal(true);
-    }, 5000);
+    }, 15000); // 15 seconds
   };
 
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
-  };
-
-  const renderImagePiece = (piece, index) => {
-    const isSelected = selectedPiece === index;
-    const normalHeight = 80;
-    const selectedHeight = 200;
-    const displayHeight = isSelected ? selectedHeight : normalHeight;
-    const aspectRatio = piece.width / piece.originalHeight;
-    const displayWidth = displayHeight * aspectRatio;
-
-    return (
-      <TouchableOpacity
-        key={index}
-        style={styles.pieceContainer}
-        onPress={() => handlePiecePress(index)}
-        activeOpacity={0.7}>
-        <View
-          style={[
-            styles.pieceImageWrapper,
-            {
-              width: displayWidth,
-              height: displayHeight,
-              borderColor: isSelected ? '#00BCD4' : '#ddd',
-              borderWidth: isSelected ? 2 : 1,
-            },
-          ]}>
-          <Image
-            source={{uri: piece.uri}}
-            style={[
-              styles.pieceImage,
-              {
-                width:
-                  piece.originalWidth * (displayHeight / piece.originalHeight),
-                height: displayHeight,
-                left: -piece.crop.x * (displayHeight / piece.originalHeight),
-              },
-            ]}
-            resizeMode="cover"
-          />
-        </View>
-        <Text style={styles.pieceLabel}>{piece.label}</Text>
-      </TouchableOpacity>
-    );
   };
 
   const symbolMap = {
@@ -245,12 +199,11 @@ const AndroidDocumentScanner = () => {
     plus: '➕',
     triangle: '🔺',
   };
+
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <Text style={styles.header}>Android Document Scanner</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.header}>Sikhyana sopana symbol Detector</Text>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -283,65 +236,34 @@ const AndroidDocumentScanner = () => {
               resizeMode="contain"
             />
 
-            {/* <Text style={styles.sectionTitle}>
-              Document Strips (30 Equal Vertical Sections):
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={true}
-              contentContainerStyle={styles.piecesScrollContent}>
-              <View style={styles.piecesRow}>
-                {imagePieces.map((piece, index) =>
-                  renderImagePiece(piece, index),
-                )}
-              </View>
-            </ScrollView> */}
-
-            <View style={styles.actionButtons}>
+            <View style={styles.actionButtonsGrid}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.recaptureButton]}
                 onPress={handleRecapture}>
                 <Text style={styles.actionButtonText}>Retake</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionButton, styles.confirmButton]}
-                onPress={handleConfirm}
-                disabled={isProcessing}>
-                {isProcessing ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.actionButtonText}>1</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.confirmButton]}
-                onPress={handleConfirm}
-                disabled={isProcessing}>
-                {isProcessing ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.actionButtonText}>2</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            {/* <View style={styles.textResultContainer}>
-              <Text style={styles.sectionTitle}>Extracted Text:</Text>
-              <View style={styles.textScrollContainer}>
-                <ScrollView
-                  style={styles.textScrollView}
-                  nestedScrollEnabled={true}>
-                  <Text style={styles.detectedText}>
-                    {detectedText || 'Processing text...'}
-                  </Text>
-                </ScrollView>
+              <View style={styles.numberButtonsRow}>
+                {[demo1, demo2, demo3].map((demo, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.smallButton}
+                    onPress={() => handleConfirm(demo, index)}
+                    disabled={processingIndex !== null}>
+                    {processingIndex === index ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.actionButtonText}>{index + 1}</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
               </View>
-            </View> */}
+            </View>
           </View>
         )}
       </ScrollView>
 
+      {/* Modal with selected data */}
       <Modal
         visible={showSuccessModal}
         transparent={true}
@@ -357,12 +279,10 @@ const AndroidDocumentScanner = () => {
               <ScrollView>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableWrapper}>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={true}>
-                      <ScrollView showsVerticalScrollIndicator={true}>
+                    <ScrollView horizontal>
+                      <ScrollView>
                         <View>
-                          {/* Table Header */}
+                          {/* Header */}
                           <View style={[styles.tableRow, styles.headerRow]}>
                             <View
                               style={[
@@ -383,8 +303,8 @@ const AndroidDocumentScanner = () => {
                             ))}
                           </View>
 
-                          {/* Combined Table Body from all categories */}
-                          {demo3?.result
+                          {/* Body from activeData */}
+                          {activeData?.result
                             ?.flatMap(category => category.output)
                             ?.map((skillRow, rowIndex) => (
                               <View
@@ -529,16 +449,21 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+    alignItems: 'center',
     marginBottom: 15,
+    gap: 10, // Optional spacing between buttons if supported
   },
   actionButton: {
-    padding: 12,
+    backgroundColor: '#00BCD4',
+    paddingVertical: 12,
     borderRadius: 8,
-    width: '48%',
+    width: '30%',
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: 5,
   },
+
   recaptureButton: {
     backgroundColor: '#FF3A30',
   },
@@ -691,6 +616,24 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  actionButtonsGrid: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  numberButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  smallButton: {
+    backgroundColor: '#00BCD4',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginHorizontal: 5,
   },
 });
 
