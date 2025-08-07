@@ -283,7 +283,7 @@ const AndroidDocumentScanner = () => {
               resizeMode="contain"
             />
 
-            <Text style={styles.sectionTitle}>
+            {/* <Text style={styles.sectionTitle}>
               Document Strips (30 Equal Vertical Sections):
             </Text>
             <ScrollView
@@ -295,7 +295,7 @@ const AndroidDocumentScanner = () => {
                   renderImagePiece(piece, index),
                 )}
               </View>
-            </ScrollView>
+            </ScrollView> */}
 
             <View style={styles.actionButtons}>
               <TouchableOpacity
@@ -316,7 +316,7 @@ const AndroidDocumentScanner = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.textResultContainer}>
+            {/* <View style={styles.textResultContainer}>
               <Text style={styles.sectionTitle}>Extracted Text:</Text>
               <View style={styles.textScrollContainer}>
                 <ScrollView
@@ -327,7 +327,7 @@ const AndroidDocumentScanner = () => {
                   </Text>
                 </ScrollView>
               </View>
-            </View>
+            </View> */}
           </View>
         )}
       </ScrollView>
@@ -344,69 +344,80 @@ const AndroidDocumentScanner = () => {
             </View>
 
             <View style={styles.modalBody}>
-              <View style={styles.tableContainer}>
-                <View style={styles.tableWrapper}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                    <ScrollView showsVerticalScrollIndicator={true}>
-                      <View>
-                        {/* Table Header */}
-                        <View style={[styles.tableRow, styles.headerRow]}>
-                          <View
-                            style={[
-                              styles.tableHeaderCell,
-                              styles.firstColumn,
-                            ]}>
-                            <Text style={styles.headerText}>Sl. No.</Text>
-                          </View>
-                          <View style={styles.tableHeaderCell}>
-                            <Text style={styles.headerText}>Skill</Text>
-                          </View>
-                          {Array.from({length: 30}).map((_, i) => (
+              <ScrollView>
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableWrapper}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={true}>
+                      <ScrollView showsVerticalScrollIndicator={true}>
+                        <View>
+                          {/* Table Header */}
+                          <View style={[styles.tableRow, styles.headerRow]}>
                             <View
-                              key={`header-${i}`}
-                              style={styles.tableHeaderCell}>
-                              <Text style={styles.headerText}>{i + 1}</Text>
+                              style={[
+                                styles.tableHeaderCell,
+                                styles.firstColumn,
+                              ]}>
+                              <Text style={styles.headerText}>Sl. No.</Text>
                             </View>
-                          ))}
-                        </View>
-
-                        {/* Table Body */}
-                        {demo1?.result.map((skillRow, rowIndex) => (
-                          <View
-                            key={`row-${rowIndex}`}
-                            style={[
-                              styles.tableRow,
-                              rowIndex % 2 === 0
-                                ? styles.evenRow
-                                : styles.oddRow,
-                            ]}>
-                            <View
-                              style={[styles.tableCell, styles.firstColumn]}>
-                              <Text style={styles.cellText}>
-                                {rowIndex + 1}
-                              </Text>
+                            <View style={styles.tableHeaderCell}>
+                              <Text style={styles.headerText}>Skill</Text>
                             </View>
-                            <View style={styles.tableCell}>
-                              <Text style={styles.cellText}>
-                                Skill {rowIndex + 1}
-                              </Text>
-                            </View>
-                            {skillRow.roll.map(([index, value], colIndex) => (
+                            {Array.from({length: 30}).map((_, i) => (
                               <View
-                                key={`cell-${rowIndex}-${colIndex}`}
-                                style={styles.tableCell}>
-                                <Text style={styles.cellText}>
-                                  {symbolMap[value]}
-                                </Text>
+                                key={`header-${i}`}
+                                style={styles.tableHeaderCell}>
+                                <Text style={styles.headerText}>{i + 1}</Text>
                               </View>
                             ))}
                           </View>
-                        ))}
-                      </View>
+
+                          {/* Combined Table Body from all categories */}
+                          {demo1?.result
+                            ?.flatMap(category => category.output)
+                            ?.map((skillRow, rowIndex) => (
+                              <View
+                                key={`row-${rowIndex}`}
+                                style={[
+                                  styles.tableRow,
+                                  rowIndex % 2 === 0
+                                    ? styles.evenRow
+                                    : styles.oddRow,
+                                ]}>
+                                <View
+                                  style={[
+                                    styles.tableCell,
+                                    styles.firstColumn,
+                                  ]}>
+                                  <Text style={styles.cellText}>
+                                    {rowIndex + 1}
+                                  </Text>
+                                </View>
+                                <View style={styles.tableCell}>
+                                  <Text style={styles.cellText}>
+                                    Skill {rowIndex + 1}
+                                  </Text>
+                                </View>
+                                {skillRow.roll.map(
+                                  ([index, value], colIndex) => (
+                                    <View
+                                      key={`cell-${rowIndex}-${colIndex}`}
+                                      style={styles.tableCell}>
+                                      <Text style={styles.cellText}>
+                                        {symbolMap[value]}
+                                      </Text>
+                                    </View>
+                                  ),
+                                )}
+                              </View>
+                            ))}
+                        </View>
+                      </ScrollView>
                     </ScrollView>
-                  </ScrollView>
+                  </View>
                 </View>
-              </View>
+              </ScrollView>
             </View>
 
             <TouchableOpacity
