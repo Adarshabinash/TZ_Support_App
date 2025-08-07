@@ -289,7 +289,7 @@ const AndroidDocumentScanner = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.textResultContainer}>
+            {/* <View style={styles.textResultContainer}>
               <Text style={styles.sectionTitle}>Extracted Text:</Text>
               <View style={styles.textScrollContainer}>
                 <ScrollView
@@ -300,7 +300,7 @@ const AndroidDocumentScanner = () => {
                   </Text>
                 </ScrollView>
               </View>
-            </View>
+            </View> */}
           </View>
         )}
       </ScrollView>
