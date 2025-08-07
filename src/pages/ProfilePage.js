@@ -16,7 +16,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
 
-// Ignore warnings
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
 const {width, height} = Dimensions.get('window');
@@ -27,9 +26,12 @@ const AndroidDocumentScanner = () => {
   const [detectedText, setDetectedText] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const [imageDimensions, setImageDimensions] = useState({width: 0, height: 0});
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const [selectedPiece, setSelectedPiece] = useState(null);
 
-  // Check camera permission on mount
   useEffect(() => {
     checkCameraPermission();
   }, []);
@@ -106,11 +108,9 @@ const AndroidDocumentScanner = () => {
         const uri = scannedImages[0];
         setImageUri(uri);
 
-        // Get image dimensions first
         const dimensions = await getImageDimensions(uri);
         setImageDimensions(dimensions);
 
-        // Split the image into 6 equal vertical pieces
         const pieces = splitImageIntoPieces(
           uri,
           dimensions.width,
@@ -118,7 +118,6 @@ const AndroidDocumentScanner = () => {
         );
         setImagePieces(pieces);
 
-        // Perform text recognition on the full image
         await detectTextFromImage(uri);
       } else {
         console.log('User cancelled document scan');
@@ -142,50 +141,59 @@ const AndroidDocumentScanner = () => {
     });
   };
 
-  const splitImageIntoPieces = async (uri, imgWidth, imgHeight) => {
+  const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
     const pieceWidth = imgWidth / 6;
     const pieces = [];
 
     for (let i = 0; i < 6; i++) {
-      try {
-        const croppedUri = await new Promise((resolve, reject) => {
-          ImageEditor.cropImage(
-            uri,
-            {
-              offset: {x: i * pieceWidth, y: 0},
-              size: {width: pieceWidth, height: imgHeight},
-            },
-            croppedUri => resolve(croppedUri),
-            error => reject(error),
-          );
-        });
-
-        pieces.push({
-          uri: croppedUri,
-          label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
-            (i + 1) * 16.66,
-          )}%)`,
-        });
-      } catch (error) {
-        console.error('Error cropping image:', error);
-      }
+      pieces.push({
+        uri,
+        originalWidth: imgWidth,
+        originalHeight: imgHeight,
+        width: pieceWidth,
+        height: imgHeight,
+        crop: {
+          x: i * pieceWidth,
+          y: 0,
+          width: pieceWidth,
+          height: imgHeight,
+        },
+        label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
+          (i + 1) * 16.66,
+        )}%)`,
+      });
     }
 
     return pieces;
   };
 
+  const handlePiecePress = index => {
+    setSelectedPiece(selectedPiece === index ? null : index);
+  };
+
   const renderImagePiece = (piece, index) => {
-    // Calculate display dimensions while maintaining aspect ratio
-    const displayHeight = 150;
+    const isSelected = selectedPiece === index;
+    const normalHeight = 150;
+    const selectedHeight = 300;
+    const displayHeight = isSelected ? selectedHeight : normalHeight;
     const aspectRatio = piece.width / piece.originalHeight;
     const displayWidth = displayHeight * aspectRatio;
 
     return (
-      <View key={index} style={styles.pieceContainer}>
+      <TouchableOpacity
+        key={index}
+        style={styles.pieceContainer}
+        onPress={() => handlePiecePress(index)}
+        activeOpacity={0.7}>
         <View
           style={[
             styles.pieceImageWrapper,
-            {width: displayWidth, height: displayHeight},
+            {
+              width: displayWidth,
+              height: displayHeight,
+              borderColor: isSelected ? '#00BCD4' : '#ddd',
+              borderWidth: isSelected ? 2 : 1,
+            },
           ]}>
           <Image
             source={{uri: piece.uri}}
@@ -202,7 +210,7 @@ const AndroidDocumentScanner = () => {
           />
         </View>
         <Text style={styles.pieceLabel}>{piece.label}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -210,7 +218,7 @@ const AndroidDocumentScanner = () => {
     setImageUri(null);
     setImagePieces([]);
     setDetectedText('');
-    scanDocument();
+    setSelectedPiece(null);
   };
 
   return (
@@ -241,7 +249,6 @@ const AndroidDocumentScanner = () => {
 
         {imageUri && (
           <View style={styles.resultContainer}>
-            {/* Full image preview */}
             <Text style={styles.sectionTitle}>Full Document:</Text>
             <Image
               source={{uri: imageUri}}
@@ -252,11 +259,13 @@ const AndroidDocumentScanner = () => {
               resizeMode="contain"
             />
 
-            {/* Image pieces grid */}
             <Text style={styles.sectionTitle}>
               Document Strips (6 Equal Vertical Sections):
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={styles.piecesScrollContent}>
               <View style={styles.piecesRow}>
                 {imagePieces.map((piece, index) =>
                   renderImagePiece(piece, index),
@@ -360,9 +369,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f5f5f5',
   },
+  piecesScrollContent: {
+    paddingVertical: 10,
+  },
   piecesRow: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    alignItems: 'flex-start',
   },
   pieceContainer: {
     marginRight: 10,
@@ -371,8 +383,6 @@ const styles = StyleSheet.create({
   pieceImageWrapper: {
     overflow: 'hidden',
     borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ddd',
   },
   pieceImage: {
     position: 'absolute',
