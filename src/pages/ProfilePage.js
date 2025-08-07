@@ -142,10 +142,14 @@ const AndroidDocumentScanner = () => {
   };
 
   const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
-    const pieceWidth = imgWidth / 6;
+    const pieceWidth = imgWidth / 30; // Divide into 30 vertical pieces
     const pieces = [];
+    console.log('pieces======>', pieces);
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 30; i++) {
+      const percentageStart = Math.round((i / 30) * 100);
+      const percentageEnd = Math.round(((i + 1) / 30) * 100);
+
       pieces.push({
         uri,
         originalWidth: imgWidth,
@@ -158,9 +162,7 @@ const AndroidDocumentScanner = () => {
           width: pieceWidth,
           height: imgHeight,
         },
-        label: `Strip ${i + 1} (${Math.round(i * 16.66)}%-${Math.round(
-          (i + 1) * 16.66,
-        )}%)`,
+        label: `Strip ${i + 1} (${percentageStart}%-${percentageEnd}%)`,
       });
     }
 
@@ -173,8 +175,8 @@ const AndroidDocumentScanner = () => {
 
   const renderImagePiece = (piece, index) => {
     const isSelected = selectedPiece === index;
-    const normalHeight = 150;
-    const selectedHeight = 300;
+    const normalHeight = 80; // Reduced height for 30 pieces
+    const selectedHeight = 200; // Height when selected
     const displayHeight = isSelected ? selectedHeight : normalHeight;
     const aspectRatio = piece.width / piece.originalHeight;
     const displayWidth = displayHeight * aspectRatio;
@@ -260,7 +262,7 @@ const AndroidDocumentScanner = () => {
             />
 
             <Text style={styles.sectionTitle}>
-              Document Strips (6 Equal Vertical Sections):
+              Document Strips (30 Equal Vertical Sections):
             </Text>
             <ScrollView
               horizontal
@@ -289,7 +291,7 @@ const AndroidDocumentScanner = () => {
               </TouchableOpacity>
             </View>
 
-            {/* <View style={styles.textResultContainer}>
+            <View style={styles.textResultContainer}>
               <Text style={styles.sectionTitle}>Extracted Text:</Text>
               <View style={styles.textScrollContainer}>
                 <ScrollView
@@ -300,7 +302,7 @@ const AndroidDocumentScanner = () => {
                   </Text>
                 </ScrollView>
               </View>
-            </View> */}
+            </View>
           </View>
         )}
       </ScrollView>
@@ -377,21 +379,21 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   pieceContainer: {
-    marginRight: 10,
+    marginRight: 5,
     alignItems: 'center',
   },
   pieceImageWrapper: {
     overflow: 'hidden',
-    borderRadius: 4,
+    borderRadius: 2,
   },
   pieceImage: {
     position: 'absolute',
   },
   pieceLabel: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#555',
     textAlign: 'center',
-    marginTop: 5,
+    marginTop: 3,
   },
   actionButtons: {
     flexDirection: 'row',
