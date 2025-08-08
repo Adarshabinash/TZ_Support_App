@@ -269,95 +269,220 @@ const AndroidDocumentScanner = () => {
         transparent={true}
         animationType="fade"
         onRequestClose={closeSuccessModal}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Scan Results</Text>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 10,
+          }}>
+          <View
+            style={{
+              width: '95%',
+              maxHeight: '85%',
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOpacity: 0.2,
+              shadowOffset: {width: 0, height: 2},
+              shadowRadius: 6,
+              elevation: 5,
+            }}>
+            {/* Header */}
+            <View
+              style={{
+                paddingVertical: 16,
+                paddingHorizontal: 16,
+                backgroundColor: '#4a90e2',
+              }}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                }}>
+                Scan Results
+              </Text>
             </View>
 
-            <View style={styles.modalBody}>
-              <ScrollView>
-                <View style={styles.tableContainer}>
-                  <View style={styles.tableWrapper}>
-                    <ScrollView horizontal>
-                      <ScrollView>
-                        <View>
-                          {/* Header */}
-                          <View style={[styles.tableRow, styles.headerRow]}>
-                            <View
-                              style={[
-                                styles.tableHeaderCell,
-                                styles.firstColumn,
-                              ]}>
-                              <Text style={styles.headerText}>Sl. No.</Text>
-                            </View>
-                            <View style={styles.tableHeaderCell}>
-                              <Text style={styles.headerText}>Skill</Text>
-                            </View>
-                            {Array.from({length: 30}).map((_, i) => (
-                              <View
-                                key={`header-${i}`}
-                                style={styles.tableHeaderCell}>
-                                <Text style={styles.headerText}>{i + 1}</Text>
-                              </View>
-                            ))}
-                          </View>
-
-                          {/* Body from activeData */}
-                          {activeData?.result
-                            ?.flatMap(category => category.output)
-                            ?.map((skillRow, rowIndex) => (
-                              <View
-                                key={`row-${rowIndex}`}
-                                style={[
-                                  styles.tableRow,
-                                  rowIndex % 2 === 0
-                                    ? styles.evenRow
-                                    : styles.oddRow,
-                                ]}>
-                                <View
-                                  style={[
-                                    styles.tableCell,
-                                    styles.firstColumn,
-                                  ]}>
-                                  <Text style={styles.cellText}>
-                                    {rowIndex + 1}
-                                  </Text>
-                                </View>
-                                <View style={styles.tableCell}>
-                                  <Text style={styles.cellText}>
-                                    {skillRow.skill || `Skill ${rowIndex + 1}`}
-                                  </Text>
-                                </View>
-                                {skillRow.roll.map(
-                                  ([index, value], colIndex) => (
-                                    <View
-                                      key={`cell-${rowIndex}-${colIndex}`}
-                                      style={styles.tableCell}>
-                                      <Text style={styles.cellText}>
-                                        {symbolMap[value]}
-                                      </Text>
-                                    </View>
-                                  ),
-                                )}
-                              </View>
-                            ))}
-                        </View>
-                      </ScrollView>
-                    </ScrollView>
+            {/* Body */}
+            <View
+              style={{
+                padding: 10,
+                maxHeight: '75%',
+              }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                <View>
+                  {/* Header Row */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#f5f5f5',
+                      borderBottomWidth: 1,
+                      borderColor: '#ddd',
+                    }}>
+                    <View
+                      style={{
+                        padding: 10,
+                        width: 60,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRightWidth: 1,
+                        borderColor: '#ddd',
+                        backgroundColor: '#fafafa',
+                      }}>
+                      <Text
+                        style={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          fontSize: 14,
+                        }}>
+                        Sl. No.
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        padding: 10,
+                        width: 150,
+                        justifyContent: 'center',
+                        alignItems: 'flex-start',
+                        borderRightWidth: 1,
+                        borderColor: '#ddd',
+                        backgroundColor: '#f5f5f5',
+                      }}>
+                      <Text
+                        style={{
+                          fontWeight: 'bold',
+                          color: '#333',
+                          fontSize: 14,
+                        }}>
+                        Skill
+                      </Text>
+                    </View>
+                    {Array.from({length: 30}).map((_, i) => (
+                      <View
+                        key={`header-${i}`}
+                        style={{
+                          padding: 10,
+                          width: 50,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          borderRightWidth: 1,
+                          borderColor: '#ddd',
+                          backgroundColor: '#f5f5f5',
+                        }}>
+                        <Text
+                          style={{
+                            fontWeight: 'bold',
+                            color: '#333',
+                            fontSize: 14,
+                          }}>
+                          {i + 1}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
+
+                  {/* Body Rows */}
+                  {activeData?.result
+                    ?.flatMap(category => category.output)
+                    ?.map((skillRow, rowIndex) => (
+                      <View
+                        key={`row-${rowIndex}`}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          backgroundColor:
+                            rowIndex % 2 === 0 ? '#ffffff' : '#f9f9f9',
+                        }}>
+                        <View
+                          style={{
+                            padding: 10,
+                            width: 60,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderRightWidth: 1,
+                            borderColor: '#eee',
+                            backgroundColor: '#fafafa',
+                          }}>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: '#444',
+                            }}>
+                            {rowIndex + 1}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            padding: 10,
+                            width: 150,
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
+                            borderRightWidth: 1,
+                            borderColor: '#eee',
+                          }}>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: '#444',
+                            }}
+                            numberOfLines={2}
+                            ellipsizeMode="tail">
+                            {skillRow.skill || `Skill ${rowIndex + 1}`}
+                          </Text>
+                        </View>
+                        {skillRow.roll.map(([index, value], colIndex) => (
+                          <View
+                            key={`cell-${rowIndex}-${colIndex}`}
+                            style={{
+                              padding: 10,
+                              width: 50,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              borderRightWidth: 1,
+                              borderColor: '#eee',
+                            }}>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                color: '#444',
+                              }}>
+                              {symbolMap[value]}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
                 </View>
               </ScrollView>
             </View>
 
+            {/* Footer Button */}
             <TouchableOpacity
-              style={styles.modalButton}
-              onPress={closeSuccessModal}>
-              <Text style={styles.modalButtonText}>OK</Text>
+              style={{
+                padding: 14,
+                backgroundColor: '#4a90e2',
+                alignItems: 'center',
+              }}
+              onPress={closeSuccessModal}
+              activeOpacity={0.7}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                }}>
+                OK
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </Modal> 
+      </Modal>
     </LinearGradient>
   );
 };
