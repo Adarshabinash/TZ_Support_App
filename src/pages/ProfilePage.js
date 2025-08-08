@@ -187,7 +187,7 @@ const AndroidDocumentScanner = () => {
       setProcessingIndex(null); // stop loader
       setActiveData(dataSource);
       setShowSuccessModal(true);
-    }, 100); // 15 seconds
+    }, 15000); // 15 seconds
   };
 
   const closeSuccessModal = () => {
