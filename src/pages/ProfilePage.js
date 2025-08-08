@@ -326,7 +326,7 @@ const AndroidDocumentScanner = () => {
                                 </View>
                                 <View style={styles.tableCell}>
                                   <Text style={styles.cellText}>
-                                    Skill {rowIndex + 1}
+                                    {skillRow.skill || `Skill ${rowIndex + 1}`}
                                   </Text>
                                 </View>
                                 {skillRow.roll.map(
@@ -357,7 +357,7 @@ const AndroidDocumentScanner = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </Modal> 
     </LinearGradient>
   );
 };
