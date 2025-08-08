@@ -187,7 +187,7 @@ const AndroidDocumentScanner = () => {
       setProcessingIndex(null); // stop loader
       setActiveData(dataSource);
       setShowSuccessModal(true);
-    }, 15000); // 15 seconds
+    }, 100); // 15 seconds
   };
 
   const closeSuccessModal = () => {
@@ -315,7 +315,7 @@ const AndroidDocumentScanner = () => {
                 maxHeight: '75%',
               }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                <View>
+                <ScrollView>
                   {/* Header Row */}
                   <View
                     style={{
@@ -458,7 +458,7 @@ const AndroidDocumentScanner = () => {
                         ))}
                       </View>
                     ))}
-                </View>
+                </ScrollView>
               </ScrollView>
             </View>
 
