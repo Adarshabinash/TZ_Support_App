@@ -30,9 +30,9 @@ function BottomTabsNavigator() {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'TakeQuiz') {
+          } else if (route.name === 'Student Register') {
             iconName = focused ? 'book' : 'book-outline';
-          } else if (route.name === 'Profile') {
+          } else if (route.name === 'Sikhyana Sopana') {
             iconName = focused ? 'person-circle' : 'person-circle-outline';
           }
 
@@ -72,8 +72,8 @@ function BottomTabsNavigator() {
         tabBarInactiveTintColor: colors.inactive,
       })}>
       <Tab.Screen name="Home" component={HomePage} />
-      <Tab.Screen name="TakeQuiz" component={TakeQuiz} />
-      <Tab.Screen name="Profile" component={ProfilePage} />
+      <Tab.Screen name="Student Register" component={TakeQuiz} />
+      <Tab.Screen name="Sikhyana Sopana" component={ProfilePage} />
     </Tab.Navigator>
   );
 }
