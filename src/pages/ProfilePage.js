@@ -183,37 +183,37 @@ const AndroidDocumentScanner = () => {
     setProgress(0);
   };
 
-const handleConfirm = (dataSource, index) => {
-  setProcessingIndex(index);
-  setActiveData(null);
-  setProgress(0);
+  const handleConfirm = (dataSource, index) => {
+    setProcessingIndex(index);
+    setActiveData(null);
+    setProgress(0);
 
-  // Calculate interval duration based on timeout
-  const totalDuration = 15000; // 15 seconds
-  const intervalDuration = 150; // Keep the same interval duration
-  const totalSteps = totalDuration / intervalDuration;
-  const progressIncrement = 100 / totalSteps;
+    // Calculate interval duration based on timeout
+    const totalDuration = 15000; // 15 seconds
+    const intervalDuration = 150; // Keep the same interval duration
+    const totalSteps = totalDuration / intervalDuration;
+    const progressIncrement = 100 / totalSteps;
 
-  // Simulate processing with progress updates
-  const interval = setInterval(() => {
-    setProgress(prev => {
-      const newProgress = prev + progressIncrement;
-      if (newProgress >= 100) {
-        clearInterval(interval);
-        return 100;
-      }
-      return newProgress;
-    });
-  }, intervalDuration);
+    // Simulate processing with progress updates
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = prev + progressIncrement;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return newProgress;
+      });
+    }, intervalDuration);
 
-  setTimeout(() => {
-    clearInterval(interval);
-    setProgress(100);
-    setProcessingIndex(null);
-    setActiveData(dataSource);
-    setShowSuccessModal(true);
-  }, totalDuration);
-};
+    setTimeout(() => {
+      clearInterval(interval);
+      setProgress(100);
+      setProcessingIndex(null);
+      setActiveData(dataSource);
+      setShowSuccessModal(true);
+    }, totalDuration);
+  };
 
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
@@ -694,6 +694,10 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: '#4a90e2',
     alignItems: 'center',
+    width: '40%',
+    borderRadius: 30,
+    top: 20,
+    alignSelf: 'center',
   },
   modalFooterText: {
     color: '#fff',
