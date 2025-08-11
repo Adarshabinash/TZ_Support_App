@@ -7,7 +7,6 @@ import {
   Image,
   Alert,
   PermissionsAndroid,
-  ScrollView,
   ActivityIndicator,
   LogBox,
   TextInput,
@@ -61,14 +60,13 @@ const studentJson = [
   {name: 'ସଚିନ କୁମାର', roll_number: 39, class: '6'},
   {name: 'ପୂଜା ପଣ୍ଡା', roll_number: 40, class: '6'},
 ];
-
 const AndroidDocumentScanner = () => {
   const [imageUri, setImageUri] = useState(null);
   const [detectedText, setDetectedText] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [studentData, setStudentData] = useState(studentJson);
-  const [isSubmitted, setIsSubmitted] = useState(false); // Fixed state name
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
 
   useEffect(() => {
@@ -81,10 +79,8 @@ const AndroidDocumentScanner = () => {
         PermissionsAndroid.PERMISSIONS.CAMERA,
       );
       setHasCameraPermission(granted);
-      return granted;
     } catch (err) {
       console.log('Permission check error:', err);
-      return false;
     }
   };
 
@@ -99,9 +95,8 @@ const AndroidDocumentScanner = () => {
           buttonNegative: 'Cancel',
         },
       );
-      const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
-      setHasCameraPermission(isGranted);
-      return isGranted;
+      setHasCameraPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
       console.log('Permission request error:', err);
       return false;
@@ -120,19 +115,19 @@ const AndroidDocumentScanner = () => {
   };
 
   const scanDocument = async () => {
-    try {
-      if (!hasCameraPermission) {
-        const permissionGranted = await requestCameraPermission();
-        if (!permissionGranted) {
-          Alert.alert(
-            'Permission Required',
-            'You need to grant camera permissions to scan documents',
-          );
-          return;
-        }
+    if (!hasCameraPermission) {
+      const permissionGranted = await requestCameraPermission();
+      if (!permissionGranted) {
+        Alert.alert(
+          'Permission Required',
+          'You need to grant camera permissions to scan documents',
+        );
+        return;
       }
+    }
 
-      setIsScanning(true);
+    setIsScanning(true);
+    try {
       const {scannedImages} = await DocumentScanner.scanDocument({
         responseType: 'uri',
         quality: 1.0,
@@ -200,9 +195,7 @@ const AndroidDocumentScanner = () => {
   const handleSubmit = () => {
     console.log('Submitted student data:', studentData);
     setIsSubmitted(true);
-    Alert.alert('Data Submitted', 'Student data has been saved successfully!', [
-      {text: 'OK'},
-    ]);
+    Alert.alert('Data Submitted', 'Student data has been saved successfully!');
   };
 
   const handleEdit = () => {
@@ -211,99 +204,88 @@ const AndroidDocumentScanner = () => {
 
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.header}>Document Scanner + Student List</Text>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.scanButton,
-              isScanning && styles.scanButtonDisabled,
-            ]}
-            onPress={scanDocument}
-            disabled={isScanning}>
-            {isScanning ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>
-                {imageUri ? 'Scan New Document' : '📷 Scan Document'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {hasScanned && imageUri && (
-          <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Scanned Document:</Text>
-            <Image
-              source={{uri: imageUri}}
-              style={styles.scannedImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.sectionTitle}>Detected Text:</Text>
-            <ScrollView style={styles.textScrollContainer}>
-              <Text style={styles.detectedText}>{detectedText}</Text>
-            </ScrollView>
-          </View>
-        )}
-
-        {hasScanned && (
+      <FlatList
+        data={hasScanned ? studentData : []}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderStudentItem}
+        initialNumToRender={10}
+        windowSize={5}
+        ListHeaderComponent={
           <>
-            <Text style={styles.sectionTitle}>Student List</Text>
+            <Text style={styles.header}>Document Scanner + Student List</Text>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                styles.scanButton,
+                isScanning && styles.scanButtonDisabled,
+              ]}
+              onPress={scanDocument}
+              disabled={isScanning}>
+              {isScanning ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>
+                  {imageUri ? 'Scan New Document' : '📷 Scan Document'}
+                </Text>
+              )}
+            </TouchableOpacity>
 
-            <View style={[styles.studentRow, styles.headerRow]}>
-              <Text style={styles.headerText}>Roll No.</Text>
-              <Text style={styles.headerText}>Name</Text>
-              <Text style={styles.headerText}>Class</Text>
-            </View>
-
-            <FlatList
-              data={studentData}
-              renderItem={renderStudentItem}
-              keyExtractor={(item, index) => index.toString()}
-            />
-
-            {!isSubmitted ? (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Submit Student Data</Text>
-                </TouchableOpacity>
+            {hasScanned && imageUri && (
+              <View style={styles.resultContainer}>
+                <Text style={styles.sectionTitle}>Scanned Document:</Text>
+                <Image
+                  source={{uri: imageUri}}
+                  style={styles.scannedImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.sectionTitle}>Detected Text:</Text>
+                <Text style={styles.detectedText}>{detectedText}</Text>
               </View>
-            ) : (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.editButton]}
-                  onPress={handleEdit}>
-                  <Text style={styles.buttonText}>Edit Student Data</Text>
-                </TouchableOpacity>
+            )}
+
+            {hasScanned && (
+              <View style={[styles.studentRow, styles.headerRow]}>
+                <Text style={styles.headerText}>Roll No.</Text>
+                <Text style={styles.headerText}>Name</Text>
+                <Text style={styles.headerText}>Class</Text>
               </View>
             )}
           </>
-        )}
-      </ScrollView>
+        }
+        ListFooterComponent={
+          hasScanned &&
+          (isSubmitted ? (
+            <TouchableOpacity
+              style={[styles.button, styles.editButton]}
+              onPress={handleEdit}>
+              <Text style={styles.buttonText}>Edit Student Data</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.button, styles.submitButton]}
+              onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Submit Student Data</Text>
+            </TouchableOpacity>
+          ))
+        }
+      />
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {flex: 1},
-  scrollContent: {padding: 20, paddingBottom: 40},
   header: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 20,
     color: '#333',
   },
-  buttonContainer: {width: '100%', marginBottom: 20},
   button: {
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    elevation: 3,
     marginVertical: 5,
   },
   scanButton: {backgroundColor: '#00BCD4'},
@@ -316,22 +298,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     marginBottom: 20,
-    elevation: 2,
   },
-  scannedImage: {width: '100%', height: 300, borderRadius: 8, marginBottom: 15},
+  scannedImage: {width: '100%', height: 250, borderRadius: 8, marginBottom: 15},
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
     color: '#444',
   },
-  textScrollContainer: {maxHeight: 150},
   detectedText: {fontSize: 14, color: '#555'},
-  studentRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    alignItems: 'center',
-  },
+  studentRow: {flexDirection: 'row', marginBottom: 10, alignItems: 'center'},
   input: {
     flex: 1,
     borderWidth: 1,
@@ -353,16 +329,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: 'white',
   },
-  readOnlyText: {
-    color: '#333',
-    paddingVertical: 8,
-    backgroundColor: '#f9f9f9',
-  },
+  readOnlyText: {color: '#333', paddingVertical: 8, backgroundColor: '#f9f9f9'},
   headerRow: {
     backgroundColor: '#f0f0f0',
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
     borderRadius: 6,
     marginBottom: 5,
   },
