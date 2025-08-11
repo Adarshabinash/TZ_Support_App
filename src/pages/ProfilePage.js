@@ -19,6 +19,8 @@ import DocumentScanner from 'react-native-document-scanner-plugin';
 import demo1 from '../utils/demo1.json';
 import demo2 from '../utils/demo2.json';
 import demo3 from '../utils/demo3.json';
+import demo4 from '../utils/demo4.json';
+import demo6 from '../utils/demo6.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 const {width, height} = Dimensions.get('window');
@@ -35,10 +37,8 @@ const AndroidDocumentScanner = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [activeData, setActiveData] = useState(null);
   const [processingIndex, setProcessingIndex] = useState(null);
-
-  // Edit states for changing symbols
   const [editOptionsVisible, setEditOptionsVisible] = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // { rowIndex, colIndex, oldValue }
+  const [editTarget, setEditTarget] = useState(null);
 
   useEffect(() => {
     checkCameraPermission();
@@ -204,19 +204,16 @@ const AndroidDocumentScanner = () => {
     triangle: '🔺',
   };
 
-  // Get the other two symbols for editing options
   const getOtherSymbols = currentSymbol => {
     const allSymbols = ['star', 'plus', 'triangle'];
     return allSymbols.filter(sym => sym !== currentSymbol);
   };
 
-  // Called when a cell is pressed in the table
   const onCellPress = (rowIndex, colIndex, value) => {
     setEditTarget({rowIndex, colIndex, oldValue: value});
     setEditOptionsVisible(true);
   };
 
-  // Called when user chooses a new symbol from options modal
   const confirmChange = newValue => {
     if (!editTarget) return;
     const oldSym = symbolMap[editTarget.oldValue] || editTarget.oldValue;
@@ -236,7 +233,6 @@ const AndroidDocumentScanner = () => {
     );
   };
 
-  // Apply the change to activeData (immutable update)
   const applyChange = newValue => {
     if (!activeData || !editTarget) {
       setEditOptionsVisible(false);
@@ -316,15 +312,22 @@ const AndroidDocumentScanner = () => {
 
         {imageUri && (
           <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Full Document:</Text>
-            <Image
-              source={{uri: imageUri}}
-              style={[
-                styles.scannedImage,
-                {aspectRatio: imageDimensions.width / imageDimensions.height},
-              ]}
-              resizeMode="contain"
-            />
+            <Text style={styles.sectionTitle}>Captured Document :</Text>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{uri: imageUri}}
+                style={[
+                  styles.scannedImage,
+                  {aspectRatio: imageDimensions.width / imageDimensions.height},
+                ]}
+                resizeMode="contain"
+              />
+              {processingIndex !== null && (
+                <View style={styles.loaderOverlay}>
+                  <ActivityIndicator size={90} color="#666" />
+                </View>
+              )}
+            </View>
 
             <View style={styles.actionButtonsGrid}>
               <TouchableOpacity
@@ -342,32 +345,13 @@ const AndroidDocumentScanner = () => {
                   marginTop: 9,
                   width: '100%',
                 }}>
-                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
+                {[demo1, demo2, demo3, demo4, demo6, demo3, demo1, demo2].map(
                   (demo, index) => (
                     <TouchableOpacity
                       key={index}
-                      style={{
-                        width: 30,
-                        height: 20,
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                        position: 'relative',
-                        borderBottomWidth: 3,
-                        borderBottomColor: '#dbdbdbff',
-                      }}
+                      style={styles.demoButton}
                       onPress={() => handleConfirm(demo, index)}
-                      disabled={processingIndex !== null}>
-                      {processingIndex === index && (
-                        <View
-                          style={{
-                            position: 'absolute',
-                            top: -280,
-                            justifyContent: 'center',
-                          }}>
-                          <ActivityIndicator size={90} color="#666" />
-                        </View>
-                      )}
-                    </TouchableOpacity>
+                      disabled={processingIndex !== null}></TouchableOpacity>
                   ),
                 )}
               </View>
@@ -376,60 +360,20 @@ const AndroidDocumentScanner = () => {
         )}
       </ScrollView>
 
-      {/* Modal with selected data */}
       <Modal
         visible={showSuccessModal}
         transparent={true}
         animationType="fade"
         onRequestClose={closeSuccessModal}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 10,
-          }}>
-          <View
-            style={{
-              width: '95%',
-              maxHeight: '85%',
-              backgroundColor: '#fff',
-              borderRadius: 12,
-              overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOpacity: 0.2,
-              shadowOffset: {width: 0, height: 2},
-              shadowRadius: 6,
-              elevation: 5,
-            }}>
-            {/* Header */}
-            <View
-              style={{
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                backgroundColor: '#4a90e2',
-              }}>
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: 18,
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                }}>
-                Scan Results
-              </Text>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Scan Results</Text>
             </View>
 
-            {/* Body */}
-            <View
-              style={{
-                padding: 10,
-                maxHeight: '75%',
-              }}>
+            <View style={styles.modalBody}>
               <ScrollView horizontal showsHorizontalScrollIndicator={true}>
                 <ScrollView>
-                  {/* Header Row */}
                   <View
                     style={{flexDirection: 'row', backgroundColor: '#f5f5f5'}}>
                     <View style={styles.tableHeaderCellFixed}>
@@ -447,7 +391,6 @@ const AndroidDocumentScanner = () => {
                     ))}
                   </View>
 
-                  {/* Table Body */}
                   {activeData?.result
                     ?.flatMap(category => category.output)
                     ?.map((skillRow, rowIndex) => (
@@ -497,33 +440,16 @@ const AndroidDocumentScanner = () => {
               </ScrollView>
             </View>
 
-            {/* Footer Button */}
             <TouchableOpacity
-              style={{
-                padding: 14,
-                backgroundColor: '#4a90e2',
-                alignItems: 'center',
-                width: '50%',
-                borderRadius: 26,
-                alignSelf: 'center',
-                top: 30,
-              }}
+              style={styles.modalFooter}
               onPress={closeSuccessModal}
               activeOpacity={0.7}>
-              <Text
-                style={{
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                }}>
-                OK
-              </Text>
+              <Text style={styles.modalFooterText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Edit Options Modal */}
       <Modal
         visible={editOptionsVisible}
         transparent={true}
@@ -625,162 +551,118 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  imageContainer: {
+    position: 'relative',
+  },
   scannedImage: {
     width: '100%',
     maxHeight: 300,
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#f5f5f5',
+    marginTop: 20,
   },
-  piecesScrollContent: {
-    paddingVertical: 10,
-  },
-  piecesRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  pieceContainer: {
-    marginRight: 5,
-    alignItems: 'center',
-  },
-  pieceImageWrapper: {
-    overflow: 'hidden',
-    borderRadius: 2,
-  },
-  pieceImage: {
+  loaderOverlay: {
     position: 'absolute',
-  },
-  pieceLabel: {
-    fontSize: 8,
-    color: '#555',
-    textAlign: 'center',
-    marginTop: 3,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    top: '50%',
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-    gap: 10,
+    transform: [{translateY: -45}], // Half of loader size (90/2)
+    zIndex: 10,
   },
-  actionButton: {
-    backgroundColor: '#00BCD4',
+  actionButtonsGrid: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  demoButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginTop: 9,
+    width: '100%',
+  },
+  demoButton: {
+    width: 30,
+    height: 20,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    position: 'relative',
+    borderBottomWidth: 3,
+    borderBottomColor: '#dbdbdbff',
+  },
+  recaptureButton: {
+    backgroundColor: '#FF3A30',
     paddingVertical: 12,
     borderRadius: 8,
     width: '30%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 5,
-  },
-  recaptureButton: {
-    backgroundColor: '#FF3A30',
-  },
-  confirmButton: {
-    backgroundColor: '#4CD964',
   },
   actionButtonText: {
     color: 'white',
     fontWeight: '600',
-  },
-  textResultContainer: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 12,
-  },
-  textScrollContainer: {
-    maxHeight: 200,
-  },
-  textScrollView: {
-    flexGrow: 1,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#34495E',
-  },
-  detectedText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#2C3E50',
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 10,
   },
   modalContainer: {
-    width: '90%',
-    height: '80%',
-    backgroundColor: 'white',
+    width: '95%',
+    maxHeight: '85%',
+    backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: {width: 0, height: 2},
+    shadowRadius: 6,
+    elevation: 5,
   },
   modalHeader: {
-    backgroundColor: '#00BCD4',
-    padding: 15,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#4a90e2',
   },
   modalTitle: {
-    color: 'white',
+    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   modalBody: {
-    padding: 20,
-    alignItems: 'center',
-    flex: 1,
+    padding: 10,
+    maxHeight: '75%',
   },
-  successIcon: {
-    width: 60,
-    height: 60,
+  modalFooter: {
+    padding: 14,
+    backgroundColor: '#4a90e2',
+    alignItems: 'center',
+    width: '40%',
     borderRadius: 30,
-    backgroundColor: '#4CD964',
+    top: 20,
+    alignSelf: 'center',
+  },
+  modalFooterText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  tableHeaderCellFixed: {
+    width: 100,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-  },
-  successIconText: {
-    color: 'white',
-    fontSize: 30,
-    fontWeight: 'bold',
-  },
-  modalText: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#333',
-    lineHeight: 22,
-  },
-  modalButton: {
-    backgroundColor: '#00BCD4',
-    padding: 15,
-    alignItems: 'center',
-  },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  tableContainer: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-  },
-  horizontalScroll: {
-    flexDirection: 'row',
-  },
-  tableWrapper: {
-    flex: 1,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 40,
-  },
-  headerRow: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#e6e6e6',
   },
   tableHeaderCell: {
     width: 50,
@@ -791,6 +673,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#e6e6e6',
   },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 40,
+  },
+  tableCellFixed: {
+    width: 100,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
   tableCell: {
     width: 50,
     height: 40,
@@ -798,9 +694,6 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  firstColumn: {
-    backgroundColor: '#d9edf7',
   },
   headerText: {
     fontWeight: 'bold',
@@ -815,41 +708,8 @@ const styles = StyleSheet.create({
   oddRow: {
     backgroundColor: '#f9f9f9',
   },
-  actionButtonsGrid: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
-  },
-  numberButtonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  smallButton: {
-    backgroundColor: '#00BCD4',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginHorizontal: 5,
-  },
-  tableHeaderCellFixed: {
-    width: 100,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e6e6e6',
-  },
-  tableCellFixed: {
-    width: 100,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
+  editableCellText: {
+    fontSize: 18,
   },
   editModalOverlay: {
     flex: 1,
@@ -898,9 +758,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#777',
   },
-  editableCellText: {
-    // textDecorationLine: 'underline',
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#34495E',
   },
 });
 
