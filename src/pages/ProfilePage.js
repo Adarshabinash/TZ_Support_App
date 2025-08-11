@@ -11,11 +11,14 @@ import {
   Dimensions,
   ActivityIndicator,
   LogBox,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
-import {UploadFileToCloud} from '../components/CloudUpload';
+import RNFS from 'react-native-fs';
+import ImagePicker from 'react-native-image-crop-picker';
+import axios from 'axios';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
@@ -34,7 +37,9 @@ const AndroidDocumentScanner = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState([]);
-
+  console.log('uploadedUrls', uploadedUrls);
+  const {width, height} = Dimensions.get('window');
+  const BATCH_SIZE = 5;
   useEffect(() => {
     checkCameraPermission();
   }, []);
@@ -83,54 +88,104 @@ const AndroidDocumentScanner = () => {
   };
 
   const cropImage = async (uri, cropData) => {
-    // In a real implementation, you would use a library like react-native-image-crop-tools
-    // to actually crop the image. This is a placeholder for that functionality.
-    // For now, we'll just return the original URI since we can't actually crop in this example.
-    return uri;
+    try {
+      const croppedPath = `${
+        RNFS.CachesDirectoryPath
+      }/cropped_${Date.now()}.jpg`;
 
-    // The actual implementation would look something like:
-    // return await ImageCropper.cropImage(uri, {
-    //   ...cropData,
-    //   includeBase64: true,
-    // });
+      // Use ImagePicker to crop the image
+      const croppedImage = await ImagePicker.openCropper({
+        path: uri,
+        width: cropData.width,
+        height: cropData.height,
+        x: cropData.x,
+        y: cropData.y,
+        includeBase64: false,
+        mediaType: 'photo',
+        cropperCircleOverlay: false,
+        compressImageQuality: 0.8,
+        freeStyleCropEnabled: false,
+      });
+
+      // Rename the cropped image to our desired path
+      await RNFS.moveFile(croppedImage.path, croppedPath);
+
+      return `file://${croppedPath}`;
+    } catch (error) {
+      console.error('Error cropping image:', error);
+      return uri;
+    }
   };
 
   const uploadImageStrips = async strips => {
     setUploading(true);
-    const urls = [];
+    const allUrls = [];
 
     try {
-      for (let i = 0; i < strips.length; i++) {
-        const strip = strips[i];
+      for (let i = 0; i < strips.length; i += BATCH_SIZE) {
+        const batch = strips.slice(i, i + BATCH_SIZE);
+        const batchUrls = [];
 
-        // First crop the strip from the original image
-        const croppedUri = await cropImage(strip.uri, strip.crop);
+        for (let j = 0; j < batch.length; j++) {
+          const strip = batch[j];
 
-        const fileName = `strip_${i}_${Date.now()}.jpg`;
-        const file = {
-          uri: croppedUri,
-          type: 'image/jpeg',
-          name: fileName,
-        };
+          try {
+            const croppedUri = await cropImage(strip.uri, strip.crop);
 
-        console.log(`Uploading strip ${i + 1}/${strips.length}...`);
-        const uploadResult = await UploadFileToCloud({file, fileName});
+            const fileName = `strip_${i + j}_${Date.now()}.jpg`;
+            const file = {
+              uri: croppedUri,
+              type: 'image/jpeg',
+              name: fileName,
+            };
 
-        console.log('API Response:', uploadResult);
+            console.log(`Uploading strip ${i + j + 1}/${strips.length}...`);
 
-        if (uploadResult.success) {
-          urls.push(uploadResult.url);
-          console.log(`Upload successful: ${uploadResult.url}`);
-        } else {
-          console.warn(`Upload failed for strip ${i + 1}`);
-          urls.push(null);
+            const uploadResult = await UploadFileToCloud({file, fileName});
+            console.log('uploadResult', uploadResult);
+            if (uploadResult.success) {
+              batchUrls.push({
+                url: uploadResult.url,
+                path: croppedUri,
+                index: i + j,
+              });
+              console.log(`Upload successful: ${uploadResult.url}`);
+            } else {
+              batchUrls.push(null);
+              console.warn(`Upload failed for strip ${i + j + 1}`);
+            }
+
+            // Clean up temporary file
+            try {
+              await RNFS.unlink(croppedUri.replace('file://', ''));
+            } catch (cleanError) {
+              console.warn('Failed to clean up temp file:', cleanError);
+            }
+          } catch (error) {
+            console.error(`Error processing strip ${i + j + 1}:`, error);
+            batchUrls.push(null);
+          }
+        }
+
+        // Update UI with current batch results
+        const newUrls = [...allUrls];
+        batchUrls.forEach((url, idx) => {
+          newUrls[i + idx] = url;
+        });
+        setUploadedUrls(newUrls);
+        allUrls.push(...batchUrls);
+
+        // Wait a bit before next batch (optional)
+        if (i + BATCH_SIZE < strips.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      setUploadedUrls(urls);
-      console.log('All strip URLs:', urls);
+      console.log('All uploads completed:', allUrls);
+      return allUrls;
     } catch (error) {
-      console.error('Error uploading strips:', error);
+      console.error('Error in upload process:', error);
+      throw error;
     } finally {
       setUploading(false);
     }
@@ -140,17 +195,10 @@ const AndroidDocumentScanner = () => {
     try {
       if (!hasCameraPermission) {
         const permissionGranted = await requestCameraPermission();
-        if (!permissionGranted) {
-          Alert.alert(
-            'Permission Required',
-            'You need to grant camera permissions to scan documents',
-          );
-          return;
-        }
+        if (!permissionGranted) return;
       }
 
       setIsScanning(true);
-      console.log('Opening Android document scanner...');
 
       const {scannedImages} = await DocumentScanner.scanDocument({
         responseType: 'uri',
@@ -159,9 +207,7 @@ const AndroidDocumentScanner = () => {
         maxNumDocuments: 1,
       });
 
-      console.log('Scanner completed with results:', scannedImages);
-
-      if (scannedImages && scannedImages.length > 0) {
+      if (scannedImages?.length > 0) {
         const uri = scannedImages[0];
         setImageUri(uri);
 
@@ -175,19 +221,13 @@ const AndroidDocumentScanner = () => {
         );
         setImagePieces(pieces);
 
-        // Upload the cropped strips
+        // Start batch uploading
         await uploadImageStrips(pieces);
-
         await detectTextFromImage(uri);
-      } else {
-        console.log('User cancelled document scan');
       }
     } catch (error) {
-      console.error('Document scan error:', error);
-      Alert.alert(
-        'Scanner Error',
-        error.message || 'Failed to open document scanner. Please try again.',
-      );
+      console.error('Scan error:', error);
+      Alert.alert('Error', 'Failed to scan document');
     } finally {
       setIsScanning(false);
     }
@@ -204,6 +244,7 @@ const AndroidDocumentScanner = () => {
   const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
     const pieceWidth = imgWidth / 30;
     const pieces = [];
+    const timestamp = Date.now();
 
     for (let i = 0; i < 30; i++) {
       pieces.push({
@@ -218,9 +259,8 @@ const AndroidDocumentScanner = () => {
           width: pieceWidth,
           height: imgHeight,
         },
-        label: `Strip ${i + 1} (${Math.round(i * 3.33)}%-${Math.round(
-          (i + 1) * 3.33,
-        )}%)`,
+        label: `Strip ${i + 1}`,
+        uniquePath: `${uri}_${timestamp}_strip_${i}`,
       });
     }
 
@@ -238,6 +278,7 @@ const AndroidDocumentScanner = () => {
     const displayHeight = isSelected ? selectedHeight : normalHeight;
     const aspectRatio = piece.width / piece.originalHeight;
     const displayWidth = displayHeight * aspectRatio;
+    const uploadedInfo = uploadedUrls[index];
 
     return (
       <TouchableOpacity
@@ -270,7 +311,19 @@ const AndroidDocumentScanner = () => {
           />
         </View>
         <Text style={styles.pieceLabel}>{piece.label}</Text>
-        {uploadedUrls[index] && <Text style={styles.uploadSuccess}>✓</Text>}
+        {uploadedInfo && (
+          <>
+            <Text style={styles.uploadSuccess}>✓</Text>
+            {isSelected && (
+              <Text
+                style={styles.pathText}
+                numberOfLines={1}
+                ellipsizeMode="middle">
+                {uploadedInfo.url}
+              </Text>
+            )}
+          </>
+        )}
       </TouchableOpacity>
     );
   };
@@ -288,7 +341,7 @@ const AndroidDocumentScanner = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.header}>Android Document Scanner</Text>
+        <Text style={styles.header}>Document Scanner</Text>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -303,7 +356,7 @@ const AndroidDocumentScanner = () => {
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <Text style={styles.buttonText}>
-                {imageUri ? 'Scan New Document' : '📷 Scan Document'}
+                {imageUri ? 'Scan New Document' : 'Scan Document'}
               </Text>
             )}
           </TouchableOpacity>
@@ -318,7 +371,7 @@ const AndroidDocumentScanner = () => {
 
         {imageUri && (
           <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Full Document:</Text>
+            <Text style={styles.sectionTitle}>Scanned Document:</Text>
             <Image
               source={{uri: imageUri}}
               style={[
@@ -328,9 +381,7 @@ const AndroidDocumentScanner = () => {
               resizeMode="contain"
             />
 
-            <Text style={styles.sectionTitle}>
-              Document Strips (30 Equal Vertical Sections):
-            </Text>
+            <Text style={styles.sectionTitle}>Document Strips:</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={true}
@@ -358,7 +409,6 @@ const AndroidDocumentScanner = () => {
                       uploadedUrls.filter(url => url).length
                     }/30 strips successfully`,
                   );
-                  console.log('Uploaded strip URLs:', uploadedUrls);
                 }}>
                 <Text style={styles.actionButtonText}>Confirm</Text>
               </TouchableOpacity>
@@ -469,6 +519,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontSize: 12,
   },
+  pathText: {
+    fontSize: 8,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 2,
+    maxWidth: 100,
+  },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -510,5 +567,35 @@ const styles = StyleSheet.create({
     color: '#34495E',
   },
 });
+
+export const UploadFileToCloud = async ({file, fileName}) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', {
+      uri: file.uri,
+      type: file.type,
+      name: fileName,
+    });
+
+    const response = await axios.post(
+      `https://thinkzone.co/cloud-storage/uploadFile/${fileName}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 30000,
+      },
+    );
+
+    return {
+      success: response?.status === 200,
+      url: response?.data?.url,
+    };
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return {success: false, url: null};
+  }
+};
 
 export default AndroidDocumentScanner;

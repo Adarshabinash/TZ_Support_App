@@ -3,7 +3,11 @@ import axios from 'axios';
 export const UploadFileToCloud = async ({file, fileName}) => {
   try {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', {
+      uri: file.uri,
+      type: file.type,
+      name: fileName,
+    });
 
     const response = await axios.post(
       `https://thinkzone.co/cloud-storage/uploadFile/${fileName}`,
@@ -12,6 +16,7 @@ export const UploadFileToCloud = async ({file, fileName}) => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 30000,
       },
     );
 
@@ -20,11 +25,7 @@ export const UploadFileToCloud = async ({file, fileName}) => {
       url: response?.data?.url,
     };
   } catch (error) {
-    if (error.response && error.response.status === 413) {
-      console.error(`The file is too large ---> ${error}`);
-    } else {
-      console.error('Error uploading file:', error);
-    }
+    console.error('Error uploading file:', error);
     return {success: false, url: null};
   }
 };
