@@ -15,7 +15,7 @@
             [6, "triangle"],
             [7, "star"],
             [8, "plus"],
-            [9, "triangle"],
+            [9, "plus"],
             [10, "star"],
             [11, "plus"],
             [12, "triangle"],
@@ -30,7 +30,7 @@
             [21, "plus"],
             [22, "triangle"],
             [23, "plus"],
-            [24, "star"],
+            [24, "plus"],
             [25, "triangle"],
             [26, "plus"],
             [27, "triangle"],
@@ -68,7 +68,7 @@
             [23, "plus"],
             [24, "triangle"],
             [25, "star"],
-            [26, "plus"],
+            [26, "triangle"],
             [27, "triangle"],
             [28, "plus"],
             [29, "triangle"],
@@ -108,7 +108,7 @@
             [27, "triangle"],
             [28, "plus"],
             [29, "triangle"],
-            [30, "plus"]
+            [30, "star"]
           ]
         },
         {
