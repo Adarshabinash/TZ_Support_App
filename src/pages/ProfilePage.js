@@ -19,8 +19,6 @@ import DocumentScanner from 'react-native-document-scanner-plugin';
 import demo1 from '../utils/demo1.json';
 import demo2 from '../utils/demo2.json';
 import demo3 from '../utils/demo3.json';
-import demo4 from '../utils/demo4.json';
-import demo6 from '../utils/demo6.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 const {width, height} = Dimensions.get('window');
@@ -39,6 +37,7 @@ const AndroidDocumentScanner = () => {
   const [processingIndex, setProcessingIndex] = useState(null);
   const [editOptionsVisible, setEditOptionsVisible] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     checkCameraPermission();
@@ -181,18 +180,40 @@ const AndroidDocumentScanner = () => {
     setShowSuccessModal(false);
     setImageDimensions({width: 0, height: 0});
     setShowSuccessModal(false);
+    setProgress(0);
   };
 
-  const handleConfirm = (dataSource, index) => {
-    setProcessingIndex(index);
-    setActiveData(null);
+const handleConfirm = (dataSource, index) => {
+  setProcessingIndex(index);
+  setActiveData(null);
+  setProgress(0);
 
-    setTimeout(() => {
-      setProcessingIndex(null);
-      setActiveData(dataSource);
-      setShowSuccessModal(true);
-    }, 150);
-  };
+  // Calculate interval duration based on timeout
+  const totalDuration = 15000; // 15 seconds
+  const intervalDuration = 150; // Keep the same interval duration
+  const totalSteps = totalDuration / intervalDuration;
+  const progressIncrement = 100 / totalSteps;
+
+  // Simulate processing with progress updates
+  const interval = setInterval(() => {
+    setProgress(prev => {
+      const newProgress = prev + progressIncrement;
+      if (newProgress >= 100) {
+        clearInterval(interval);
+        return 100;
+      }
+      return newProgress;
+    });
+  }, intervalDuration);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    setProgress(100);
+    setProcessingIndex(null);
+    setActiveData(dataSource);
+    setShowSuccessModal(true);
+  }, totalDuration);
+};
 
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
@@ -312,7 +333,7 @@ const AndroidDocumentScanner = () => {
 
         {imageUri && (
           <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Captured Document :</Text>
+            <Text style={styles.sectionTitle}>Full Document:</Text>
             <View style={styles.imageContainer}>
               <Image
                 source={{uri: imageUri}}
@@ -325,6 +346,14 @@ const AndroidDocumentScanner = () => {
               {processingIndex !== null && (
                 <View style={styles.loaderOverlay}>
                   <ActivityIndicator size={90} color="#666" />
+                  <Text style={styles.progressText}>
+                    Processing: {progress}%
+                  </Text>
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[styles.progressBar, {width: `${progress}%`}]}
+                    />
+                  </View>
                 </View>
               )}
             </View>
@@ -336,22 +365,16 @@ const AndroidDocumentScanner = () => {
                 <Text style={styles.actionButtonText}>Retake</Text>
               </TouchableOpacity>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-end',
-                  paddingHorizontal: 20,
-                  marginTop: 9,
-                  width: '100%',
-                }}>
-                {[demo1, demo2, demo3, demo4, demo6, demo3, demo1, demo2].map(
+              <View style={styles.demoButtonsContainer}>
+                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
                   (demo, index) => (
                     <TouchableOpacity
                       key={index}
                       style={styles.demoButton}
                       onPress={() => handleConfirm(demo, index)}
-                      disabled={processingIndex !== null}></TouchableOpacity>
+                      disabled={processingIndex !== null}>
+                      {/* <Text style={styles.demoButtonText}>{index + 1}</Text> */}
+                    </TouchableOpacity>
                   ),
                 )}
               </View>
@@ -560,7 +583,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#f5f5f5',
-    marginTop: 20,
   },
   loaderOverlay: {
     position: 'absolute',
@@ -569,8 +591,30 @@ const styles = StyleSheet.create({
     right: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{translateY: -45}], // Half of loader size (90/2)
+    transform: [{translateY: -45}],
     zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 8,
+    padding: 20,
+  },
+  progressText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  progressBarContainer: {
+    height: 10,
+    width: '80%',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    marginTop: 10,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 5,
   },
   actionButtonsGrid: {
     flexDirection: 'column',
@@ -594,6 +638,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderBottomWidth: 3,
     borderBottomColor: '#dbdbdbff',
+  },
+  demoButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
   },
   recaptureButton: {
     backgroundColor: '#FF3A30',
@@ -645,10 +694,6 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: '#4a90e2',
     alignItems: 'center',
-    width: '40%',
-    borderRadius: 30,
-    top: 20,
-    alignSelf: 'center',
   },
   modalFooterText: {
     color: '#fff',
