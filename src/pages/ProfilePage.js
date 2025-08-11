@@ -191,7 +191,7 @@ const AndroidDocumentScanner = () => {
       setProcessingIndex(null);
       setActiveData(dataSource);
       setShowSuccessModal(true);
-    }, 15000);
+    }, 150);
   };
 
   const closeSuccessModal = () => {
@@ -331,20 +331,43 @@ const AndroidDocumentScanner = () => {
                 <Text style={styles.actionButtonText}>Retake</Text>
               </TouchableOpacity>
 
-              <View style={styles.numberButtonsRow}>
-                {[demo1, demo2, demo3].map((demo, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.smallButton}
-                    onPress={() => handleConfirm(demo, index)}
-                    disabled={processingIndex !== null}>
-                    {processingIndex === index ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.actionButtonText}>{index + 1}</Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  paddingHorizontal: 20,
+                  marginTop: 9,
+                  width: '100%',
+                }}>
+                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
+                  (demo, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={{
+                        width: 30,
+                        height: 20,
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        position: 'relative',
+                        borderBottomWidth: 3,
+                        borderBottomColor: '#dbdbdbff',
+                      }}
+                      onPress={() => handleConfirm(demo, index)}
+                      disabled={processingIndex !== null}>
+                      {processingIndex === index && (
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: -280,
+                            justifyContent: 'center',
+                          }}>
+                          <ActivityIndicator size={90} color="#666" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ),
+                )}
               </View>
             </View>
           </View>
