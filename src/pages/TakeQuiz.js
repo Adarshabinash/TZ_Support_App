@@ -11,63 +11,40 @@ import {
   LogBox,
   TextInput,
   FlatList,
+  ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
+import {
+  class5Students,
+  class4Students,
+  class3Students,
+  class2Students,
+  class1Students,
+} from '../utils/StudentsData';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
-const studentJson = [
-  {name: 'ଆଶିଷ କୁମାର', roll_number: 1, class: '6'},
-  {name: 'ସୁମିତା ପଟ୍ଟନାୟକ', roll_number: 2, class: '6'},
-  {name: 'ଦେବାଶିଷ ଦାଶ', roll_number: 3, class: '6'},
-  {name: 'ସ୍ମିତି ରାଣୀ', roll_number: 4, class: '6'},
-  {name: 'ଅନୁଜ କୁମାର', roll_number: 5, class: '6'},
-  {name: 'ମନୋଜିତ ସାହୁ', roll_number: 6, class: '6'},
-  {name: 'ସୋନାଲି ପଣ୍ଡା', roll_number: 7, class: '6'},
-  {name: 'ରମେଶ ମହାନ୍ତି', roll_number: 8, class: '6'},
-  {name: 'ପ୍ରିୟଦର୍ଶିନୀ ସେନାପତି', roll_number: 9, class: '6'},
-  {name: 'ବିବେକାନନ୍ଦ ସାହୁ', roll_number: 10, class: '6'},
-  {name: 'ଚନ୍ଦନ କୁମାର', roll_number: 11, class: '6'},
-  {name: 'ସୁଧାଂଶୁ ପଣ୍ଡା', roll_number: 12, class: '6'},
-  {name: 'ଅନନ୍ୟା ପଟ୍ଟନାୟକ', roll_number: 13, class: '6'},
-  {name: 'ପ୍ରତ୍ୟୁଷ ସାହୁ', roll_number: 14, class: '6'},
-  {name: 'ମମତା ଦାଶ', roll_number: 15, class: '6'},
-  {name: 'ରୋହିତ କୁମାର', roll_number: 16, class: '6'},
-  {name: 'ସନ୍ଧ୍ୟା ମହାନ୍ତି', roll_number: 17, class: '6'},
-  {name: 'ଜଗନ୍ନାଥ ସେନାପତି', roll_number: 18, class: '6'},
-  {name: 'କବିତା ପଟ୍ଟନାୟକ', roll_number: 19, class: '6'},
-  {name: 'ସତ୍ୟଜିତ ପଣ୍ଡା', roll_number: 20, class: '6'},
-  {name: 'ଦୀପାଳି ପଟ୍ଟନାୟକ', roll_number: 21, class: '6'},
-  {name: 'ଶିବାନନ୍ଦ ସାହୁ', roll_number: 22, class: '6'},
-  {name: 'ସୁପ୍ରିୟା ସେନାପତି', roll_number: 23, class: '6'},
-  {name: 'ତାପସ କୁମାର', roll_number: 24, class: '6'},
-  {name: 'ପ୍ରିୟଙ୍କା ପଣ୍ଡା', roll_number: 25, class: '6'},
-  {name: 'ବିଶ୍ୱଜିତ ସାହୁ', roll_number: 26, class: '6'},
-  {name: 'କାଜଲି ଦାଶ', roll_number: 27, class: '6'},
-  {name: 'ଗୋପୀନାଥ ମହାନ୍ତି', roll_number: 28, class: '6'},
-  {name: 'ସୁନୀତା ପଟ୍ଟନାୟକ', roll_number: 29, class: '6'},
-  {name: 'ରାଜେଶ କୁମାର', roll_number: 30, class: '6'},
-  {name: 'ସମୀରାଣୀ ସାହୁ', roll_number: 31, class: '6'},
-  {name: 'ବିକାଶ ମହାନ୍ତି', roll_number: 32, class: '6'},
-  {name: 'ଯଶୋଦା ପଣ୍ଡା', roll_number: 33, class: '6'},
-  {name: 'ସାରଥୀ ସାହୁ', roll_number: 34, class: '6'},
-  {name: 'ଲିପିକା ପଟ୍ଟନାୟକ', roll_number: 35, class: '6'},
-  {name: 'ବିନୋଦ କୁମାର', roll_number: 36, class: '6'},
-  {name: 'ଅନୁପମା ସେନାପତି', roll_number: 37, class: '6'},
-  {name: 'ସୁଭଦ୍ରା ପଟ୍ଟନାୟକ', roll_number: 38, class: '6'},
-  {name: 'ସଚିନ କୁମାର', roll_number: 39, class: '6'},
-  {name: 'ପୂଜା ପଣ୍ଡା', roll_number: 40, class: '6'},
-];
 const AndroidDocumentScanner = () => {
   const [imageUri, setImageUri] = useState(null);
   const [detectedText, setDetectedText] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const [studentData, setStudentData] = useState(studentJson);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [hasScanned, setHasScanned] = useState(false);
+  const [studentData, setStudentData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [scanCount, setScanCount] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentClass, setCurrentClass] = useState('');
+
+  // Define the order of class data to display
+  const classOrder = [
+    {data: class5Students, name: 'Class 5'},
+    {data: class4Students, name: 'Class 4'},
+    {data: class3Students, name: 'Class 3'},
+    {data: class2Students, name: 'Class 2'},
+    {data: class1Students, name: 'Class 1'},
+  ];
 
   useEffect(() => {
     checkCameraPermission();
@@ -107,11 +84,33 @@ const AndroidDocumentScanner = () => {
     try {
       const result = await TextRecognition.recognize(uri);
       setDetectedText(result?.text || 'No text detected');
-      setHasScanned(true);
     } catch (error) {
       console.error('OCR error:', error);
       setDetectedText('Text detection failed');
     }
+  };
+
+  const loadStudentData = () => {
+    setIsLoading(true);
+    setStudentData([]);
+
+    // Show loading for 10 seconds
+    setTimeout(() => {
+      const currentClassIndex = scanCount % classOrder.length;
+      const {data, name} = classOrder[currentClassIndex];
+
+      // Format the data to match expected structure
+      const formattedData = data.map(student => ({
+        roll_number: student.roll,
+        name: student.studentName,
+        class: student.class,
+      }));
+
+      setStudentData(formattedData);
+      setCurrentClass(name);
+      setIsLoading(false);
+      setScanCount(prev => prev + 1);
+    }, 10000);
   };
 
   const scanDocument = async () => {
@@ -139,6 +138,7 @@ const AndroidDocumentScanner = () => {
         const uri = scannedImages[0];
         setImageUri(uri);
         await detectTextFromImage(uri);
+        loadStudentData();
       }
     } catch (error) {
       console.error('Document scan error:', error);
@@ -156,127 +156,142 @@ const AndroidDocumentScanner = () => {
 
   const renderStudentItem = ({item, index}) => (
     <View style={styles.studentRow}>
-      {isSubmitted ? (
-        <Text style={[styles.inputRoll, styles.readOnlyText]}>
-          {String(item.roll_number).padStart(2, '0')}
-        </Text>
-      ) : (
-        <TextInput
-          style={styles.inputRoll}
-          value={String(item.roll_number)}
-          keyboardType="numeric"
-          maxLength={2}
-          onChangeText={text => updateStudent(index, 'roll_number', text)}
-        />
-      )}
-      {isSubmitted ? (
-        <Text style={[styles.input, styles.readOnlyText]}>{item.name}</Text>
-      ) : (
+      <Text style={[styles.inputRoll, !isEditing && styles.readOnlyText]}>
+        {String(item.roll_number).padStart(2, '0')}
+      </Text>
+
+      {isEditing ? (
         <TextInput
           style={styles.input}
           value={item.name}
           onChangeText={text => updateStudent(index, 'name', text)}
         />
-      )}
-      {isSubmitted ? (
-        <Text style={[styles.inputRoll, styles.readOnlyText]}>
-          {item.class}
-        </Text>
       ) : (
-        <TextInput
-          style={styles.inputRoll}
-          value={item.class}
-          onChangeText={text => updateStudent(index, 'class', text)}
-        />
+        <Text style={[styles.input, styles.readOnlyText]}>{item.name}</Text>
       )}
+
+      <Text style={[styles.inputRoll, !isEditing && styles.readOnlyText]}>
+        {item.class}
+      </Text>
     </View>
   );
 
   const handleSubmit = () => {
-    console.log('Submitted student data:', studentData);
-    setIsSubmitted(true);
-    Alert.alert('Data Submitted', 'Student data has been saved successfully!');
+    console.log('Current student data:', studentData);
+    setIsEditing(false);
+    Alert.alert('Data Saved', 'Changes have been saved!');
   };
 
   const handleEdit = () => {
-    setIsSubmitted(false);
+    setIsEditing(true);
+  };
+
+  const handleReset = () => {
+    setImageUri(null);
+    setDetectedText('');
+    setStudentData([]);
+    setIsEditing(false);
   };
 
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
-      <FlatList
-        data={hasScanned ? studentData : []}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderStudentItem}
-        initialNumToRender={10}
-        windowSize={5}
-        ListHeaderComponent={
-          <>
-            <Text style={styles.header}>Document Scanner + Student List</Text>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.scanButton,
-                isScanning && styles.scanButtonDisabled,
-              ]}
-              onPress={scanDocument}
-              disabled={isScanning}>
-              {isScanning ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.buttonText}>
-                  {imageUri ? 'Scan New Document' : '📷 Scan Document'}
-                </Text>
-              )}
-            </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.header}>Document Scanner + Student List</Text>
 
-            {hasScanned && imageUri && (
-              <View style={styles.resultContainer}>
-                <Text style={styles.sectionTitle}>Scanned Document:</Text>
-                <Image
-                  source={{uri: imageUri}}
-                  style={styles.scannedImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.sectionTitle}>Detected Text:</Text>
-                <Text style={styles.detectedText}>{detectedText}</Text>
-              </View>
-            )}
-
-            {hasScanned && (
-              <View style={[styles.studentRow, styles.headerRow]}>
-                <Text style={styles.headerText}>Roll No.</Text>
-                <Text style={styles.headerText}>Name</Text>
-                <Text style={styles.headerText}>Class</Text>
-              </View>
-            )}
-          </>
-        }
-        ListFooterComponent={
-          hasScanned &&
-          (isSubmitted ? (
-            <TouchableOpacity
-              style={[styles.button, styles.editButton]}
-              onPress={handleEdit}>
-              <Text style={styles.buttonText}>Edit Student Data</Text>
-            </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.scanButton,
+            (isScanning || isLoading) && styles.scanButtonDisabled,
+          ]}
+          onPress={scanDocument}
+          disabled={isScanning || isLoading}>
+          {isScanning ? (
+            <ActivityIndicator color="#fff" size="small" />
           ) : (
+            <Text style={styles.buttonText}>
+              {imageUri ? 'Scan New Document' : '📷 Scan Document'}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#00BCD4" />
+            <Text style={styles.loadingText}>Loading student data...</Text>
+            <Text style={styles.loadingSubText}>Please wait 10 seconds</Text>
+          </View>
+        )}
+
+        {imageUri && (
+          <View style={styles.resultContainer}>
+            <Text style={styles.sectionTitle}>Scanned Document:</Text>
+            <Image
+              source={{uri: imageUri}}
+              style={styles.scannedImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.sectionTitle}>Detected Text:</Text>
+            <Text style={styles.detectedText}>{detectedText}</Text>
+          </View>
+        )}
+
+        {studentData.length > 0 && (
+          <>
+            <Text style={styles.classHeader}>{currentClass} Students</Text>
+            <View style={[styles.studentRow, styles.headerRow]}>
+              <Text style={styles.headerText}>Roll</Text>
+              <Text style={styles.headerText}>Name</Text>
+              <Text style={styles.headerText}>Class</Text>
+            </View>
+
+            <FlatList
+              data={studentData}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={renderStudentItem}
+              scrollEnabled={false}
+              style={styles.studentList}
+            />
+          </>
+        )}
+
+        {studentData.length > 0 && (
+          <View style={styles.buttonContainer}>
+            {isEditing ? (
+              <TouchableOpacity
+                style={[styles.button, styles.submitButton]}
+                onPress={handleSubmit}>
+                <Text style={styles.buttonText}>Save Changes</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.button, styles.editButton]}
+                onPress={handleEdit}>
+                <Text style={styles.buttonText}>Edit Student Names</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              style={[styles.button, styles.submitButton]}
-              onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Submit Student Data</Text>
+              style={[styles.button, styles.resetButton]}
+              onPress={handleReset}>
+              <Text style={styles.buttonText}>Reset Scanner</Text>
             </TouchableOpacity>
-          ))
-        }
-      />
+          </View>
+        )}
+      </ScrollView>
     </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
+  container: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 30,
+  },
   header: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 20,
@@ -286,55 +301,106 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 5,
+    marginVertical: 10,
+    marginHorizontal: 20,
+    elevation: 3,
   },
-  scanButton: {backgroundColor: '#00BCD4'},
-  scanButtonDisabled: {backgroundColor: '#B2EBF2'},
-  submitButton: {backgroundColor: '#4CAF50'},
-  editButton: {backgroundColor: '#FF9800'},
-  buttonText: {color: 'white', fontWeight: '600', fontSize: 16},
+  scanButton: {
+    backgroundColor: '#00BCD4',
+  },
+  scanButtonDisabled: {
+    backgroundColor: '#B2EBF2',
+  },
+  submitButton: {
+    backgroundColor: '#4CAF50',
+  },
+  editButton: {
+    backgroundColor: '#FF9800',
+  },
+  resetButton: {
+    backgroundColor: '#F44336',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
   resultContainer: {
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 15,
+    margin: 20,
     marginBottom: 20,
+    elevation: 2,
   },
-  scannedImage: {width: '100%', height: 250, borderRadius: 8, marginBottom: 15},
+  scannedImage: {
+    width: '100%',
+    height: 250,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
     color: '#444',
   },
-  detectedText: {fontSize: 14, color: '#555'},
-  studentRow: {flexDirection: 'row', marginBottom: 10, alignItems: 'center'},
+  detectedText: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
+  },
+  studentRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  studentList: {
+    marginHorizontal: 15,
+  },
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    padding: 8,
+    padding: 10,
     marginHorizontal: 5,
     fontSize: 14,
     backgroundColor: 'white',
+    elevation: 1,
   },
   inputRoll: {
     width: 50,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
-    padding: 8,
+    padding: 10,
     marginHorizontal: 5,
     fontSize: 14,
     textAlign: 'center',
     backgroundColor: 'white',
+    elevation: 1,
   },
-  readOnlyText: {color: '#333', paddingVertical: 8, backgroundColor: '#f9f9f9'},
+  readOnlyText: {
+    color: '#333',
+    paddingVertical: 8,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    elevation: 0,
+  },
   headerRow: {
     backgroundColor: '#f0f0f0',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 6,
-    marginBottom: 5,
+    marginBottom: 10,
+    marginTop: 15,
+    marginHorizontal: 15,
   },
   headerText: {
     flex: 1,
@@ -343,6 +409,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginHorizontal: 5,
     color: '#333',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    marginVertical: 20,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 18,
+    color: '#555',
+    fontWeight: '500',
+  },
+  loadingSubText: {
+    marginTop: 5,
+    fontSize: 14,
+    color: '#777',
+  },
+  classHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 20,
+    marginLeft: 20,
+    marginBottom: 10,
   },
 });
 
