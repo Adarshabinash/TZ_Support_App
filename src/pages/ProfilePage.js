@@ -289,9 +289,11 @@ const AndroidDocumentScanner = () => {
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
+    <LinearGradient
+      colors={['#007d8dff', '#cec7f1ff', '#336fdfff']}
+      style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.header}>Sikhyana sopana symbol Detector</Text>
+        <Text style={styles.header}>Sikhyana Sopana symbol Detector</Text>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -501,6 +503,10 @@ const AndroidDocumentScanner = () => {
                 padding: 14,
                 backgroundColor: '#4a90e2',
                 alignItems: 'center',
+                width: '50%',
+                borderRadius: 26,
+                alignSelf: 'center',
+                top: 30,
               }}
               onPress={closeSuccessModal}
               activeOpacity={0.7}>
@@ -572,13 +578,18 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2C3E50',
+    color: '#e7e8e9ff',
     textAlign: 'center',
     marginVertical: 20,
+    top: '30%',
   },
   buttonContainer: {
     width: '100%',
     marginBottom: 20,
+    top: '30%',
+    paddingBottom: 20,
+    borderBottomColor: '#e2e1e1ff',
+    borderBottomWidth: 1,
   },
   button: {
     padding: 15,
