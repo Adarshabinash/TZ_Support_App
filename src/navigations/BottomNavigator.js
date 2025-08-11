@@ -56,8 +56,8 @@ function BottomTabsNavigator() {
         ),
         tabBarStyle: {
           backgroundColor: colors.card,
-          borderTopLeftRadius: 15,
-          borderTopRightRadius: 15,
+          // borderTopLeftRadius: 16,
+          // borderTopRightRadius: 15,
           height: 70,
           paddingBottom: 10,
           paddingTop: 5,
