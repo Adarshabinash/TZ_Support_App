@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   modalBody: {
     padding: 20,
     alignItems: 'center',
-    flex: 1, // Make the body take up all available space
+    flex: 1, 
   },
   successIcon: {
     width: 60,
