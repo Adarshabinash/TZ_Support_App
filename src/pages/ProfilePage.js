@@ -19,6 +19,8 @@ import DocumentScanner from 'react-native-document-scanner-plugin';
 import demo1 from '../utils/demo1.json';
 import demo2 from '../utils/demo2.json';
 import demo3 from '../utils/demo3.json';
+import demo4 from '../utils/demo4.json';
+import demo6 from '../utils/demo6.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 const {width, height} = Dimensions.get('window');
@@ -316,7 +318,7 @@ const AndroidDocumentScanner = () => {
 
         {imageUri && (
           <View style={styles.resultContainer}>
-            <Text style={styles.sectionTitle}>Full Document:</Text>
+            <Text style={styles.sectionTitle}>Captured Document :</Text>
             <Image
               source={{uri: imageUri}}
               style={[
@@ -342,7 +344,7 @@ const AndroidDocumentScanner = () => {
                   marginTop: 9,
                   width: '100%',
                 }}>
-                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
+                {[demo1, demo2, demo3, demo4, demo6, demo3, demo1, demo2].map(
                   (demo, index) => (
                     <TouchableOpacity
                       key={index}
@@ -631,6 +633,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#f5f5f5',
+    marginTop: 20,
   },
   piecesScrollContent: {
     paddingVertical: 10,
