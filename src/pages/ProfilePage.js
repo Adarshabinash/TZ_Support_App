@@ -33,7 +33,7 @@ const AndroidDocumentScanner = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [activeData, setActiveData] = useState(null); // <- NEW STATE
+  const [activeData, setActiveData] = useState(null);
   const [processingIndex, setProcessingIndex] = useState(null);
 
   // Edit states for changing symbols
@@ -184,14 +184,14 @@ const AndroidDocumentScanner = () => {
   };
 
   const handleConfirm = (dataSource, index) => {
-    setProcessingIndex(index); // track the clicked button
+    setProcessingIndex(index);
     setActiveData(null);
 
     setTimeout(() => {
-      setProcessingIndex(null); // stop loader
+      setProcessingIndex(null);
       setActiveData(dataSource);
       setShowSuccessModal(true);
-    }, 15000); // 15 seconds
+    }, 150);
   };
 
   const closeSuccessModal = () => {
@@ -204,16 +204,14 @@ const AndroidDocumentScanner = () => {
     triangle: '🔺',
   };
 
-  /* -------------------------
-     Editing logic starts here
-     ------------------------- */
+  // Get the other two symbols for editing options
+  const getOtherSymbols = currentSymbol => {
+    const allSymbols = ['star', 'plus', 'triangle'];
+    return allSymbols.filter(sym => sym !== currentSymbol);
+  };
 
   // Called when a cell is pressed in the table
   const onCellPress = (rowIndex, colIndex, value) => {
-    // Only allow editing if the current cell is a star (as per user's requirement)
-    if (value !== 'star') {
-      return;
-    }
     setEditTarget({rowIndex, colIndex, oldValue: value});
     setEditOptionsVisible(true);
   };
@@ -247,11 +245,7 @@ const AndroidDocumentScanner = () => {
     }
 
     try {
-      // Deep clone activeData to avoid mutating original object
       const updated = JSON.parse(JSON.stringify(activeData));
-
-      // We need to find the row within the flattened output order:
-      // same order as activeData.result.flatMap(cat => cat.output)
       let counter = 0;
       let modified = false;
 
@@ -261,16 +255,11 @@ const AndroidDocumentScanner = () => {
 
         for (let outIdx = 0; outIdx < category.output.length; outIdx++) {
           if (counter === editTarget.rowIndex) {
-            // found the row to modify
             const row = category.output[outIdx];
-            // Ensure roll exists and has the column we want
             if (Array.isArray(row.roll) && row.roll[editTarget.colIndex]) {
-              // row.roll is an array of [index, value] pairs
-              // update the value (second element)
               row.roll[editTarget.colIndex][1] = newValue;
               modified = true;
             } else {
-              // If column not present, we can either push or skip. We'll skip to be safe.
               console.warn(
                 'applyChange: target column not present in row.roll, skipping',
               );
@@ -298,10 +287,6 @@ const AndroidDocumentScanner = () => {
       setEditTarget(null);
     }
   };
-
-  /* -------------------------
-     Editing logic ends here
-     ------------------------- */
 
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
@@ -346,20 +331,43 @@ const AndroidDocumentScanner = () => {
                 <Text style={styles.actionButtonText}>Retake</Text>
               </TouchableOpacity>
 
-              <View style={styles.numberButtonsRow}>
-                {[demo1, demo2, demo3].map((demo, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.smallButton}
-                    onPress={() => handleConfirm(demo, index)}
-                    disabled={processingIndex !== null}>
-                    {processingIndex === index ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.actionButtonText}>{index + 1}</Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-end',
+                  paddingHorizontal: 20,
+                  marginTop: 9,
+                  width: '100%',
+                }}>
+                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
+                  (demo, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={{
+                        width: 30,
+                        height: 20,
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        position: 'relative',
+                        borderBottomWidth: 3,
+                        borderBottomColor: '#dbdbdbff',
+                      }}
+                      onPress={() => handleConfirm(demo, index)}
+                      disabled={processingIndex !== null}>
+                      {processingIndex === index && (
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: -280,
+                            justifyContent: 'center',
+                          }}>
+                          <ActivityIndicator size={90} color="#666" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ),
+                )}
               </View>
             </View>
           </View>
@@ -463,16 +471,20 @@ const AndroidDocumentScanner = () => {
                             key={`cell-${rowIndex}-${colIndex}`}
                             style={styles.tableCell}>
                             <TouchableOpacity
-                              activeOpacity={value === 'star' ? 0.6 : 1}
+                              activeOpacity={0.6}
                               onPress={() =>
                                 onCellPress(rowIndex, colIndex, value)
                               }>
                               <Text
                                 style={[
                                   styles.cellText,
-                                  value === 'star' && styles.editableCellText,
+                                  styles.editableCellText,
+                                  {
+                                    fontSize:
+                                      symbolMap[value] === '🔺' ? 29 : 18,
+                                  },
                                 ]}>
-                                {symbolMap[value]}
+                                {symbolMap[value] || value}
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -505,7 +517,7 @@ const AndroidDocumentScanner = () => {
         </View>
       </Modal>
 
-      {/* Edit Options Modal (appears when user taps on a star cell) */}
+      {/* Edit Options Modal */}
       <Modal
         visible={editOptionsVisible}
         transparent={true}
@@ -519,19 +531,18 @@ const AndroidDocumentScanner = () => {
             <Text style={styles.editModalTitle}>Change symbol</Text>
 
             <View style={styles.editOptionsRow}>
-              <TouchableOpacity
-                style={styles.editOptionButton}
-                onPress={() => confirmChange('triangle')}>
-                <Text style={styles.editOptionText}>
-                  {symbolMap.triangle} Triangle
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.editOptionButton}
-                onPress={() => confirmChange('plus')}>
-                <Text style={styles.editOptionText}>{symbolMap.plus} Plus</Text>
-              </TouchableOpacity>
+              {editTarget &&
+                getOtherSymbols(editTarget.oldValue).map(symbol => (
+                  <TouchableOpacity
+                    key={symbol}
+                    style={styles.editOptionButton}
+                    onPress={() => confirmChange(symbol)}>
+                    <Text style={styles.editOptionText}>
+                      {symbolMap[symbol]}{' '}
+                      {symbol.charAt(0).toUpperCase() + symbol.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
             </View>
 
             <TouchableOpacity
@@ -639,7 +650,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     marginBottom: 15,
-    gap: 10, // Optional spacing between buttons if supported
+    gap: 10,
   },
   actionButton: {
     backgroundColor: '#00BCD4',
@@ -650,7 +661,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: 5,
   },
-
   recaptureButton: {
     backgroundColor: '#FF3A30',
   },
@@ -691,7 +701,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    height: '80%', // Increased modal height
+    height: '80%',
     backgroundColor: 'white',
     borderRadius: 12,
     overflow: 'hidden',
@@ -742,7 +752,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tableContainer: {
-    flex: 1, // Takes all available space in modal body
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 4,
@@ -756,7 +766,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 40, // Minimum row height
+    minHeight: 40,
   },
   headerRow: {
     backgroundColor: '#f2f2f2',
@@ -794,16 +804,6 @@ const styles = StyleSheet.create({
   oddRow: {
     backgroundColor: '#f9f9f9',
   },
-  modalButton: {
-    backgroundColor: '#00BCD4',
-    padding: 15,
-    alignItems: 'center',
-  },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   actionButtonsGrid: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -840,8 +840,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
   },
-
-  /* Edit modal styles */
   editModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -890,8 +888,8 @@ const styles = StyleSheet.create({
     color: '#777',
   },
   editableCellText: {
-    // visually hint that this cell is editable (star)
     // textDecorationLine: 'underline',
+    fontSize: 18,
   },
 });
 
