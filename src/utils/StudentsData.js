@@ -6,12 +6,12 @@ export const class3Students = [
   },
   {
     roll: 2,
-    studentName: 'ସୁରେଶ ପରିଡା',
+    studentName: 'ସୁରେଶ ପରିଡ',
     class: 3,
   },
   {
     roll: 3,
-    studentName: 'ସଦାଶିବ ପରିଡା',
+    studentName: 'ସଦାଶିବ ପରିଡ',
     class: 3,
   },
   {
@@ -21,12 +21,12 @@ export const class3Students = [
   },
   {
     roll: 5,
-    studentName: 'ସଦାଶିବ ପରିଡା',
+    studentName: 'ସଦାଶିବ ପରିଡ',
     class: 3,
   },
   {
     roll: 6,
-    studentName: 'ହେମନ୍ତ ପରିଡା',
+    studentName: 'ହେମନ୍ତ ପରିଡ',
     class: 3,
   },
   {
@@ -36,17 +36,17 @@ export const class3Students = [
   },
   {
     roll: 8,
-    studentName: 'ବାବୁଲି ଶିକାରୀ',
+    studentName: 'ବାବଲି ଶିକାରୀ',
     class: 3,
   },
   {
     roll: 9,
-    studentName: 'ଶୁଭଲକ୍ଷ୍ମୀ ଭୋଇ',
+    studentName: 'ଶୁଭଲକ୍ଷ୍ ଭୋଇ',
     class: 3,
   },
   {
     roll: 10,
-    studentName: 'କ୍ଷେତ୍ରବାସୀ ମଲ୍ଲିକ',
+    studentName: 'କ୍ଷେତ୍ବାସୀ ମଲ୍ଲିକ',
     class: 3,
   },
   {
@@ -61,7 +61,7 @@ export const class3Students = [
   },
   {
     roll: 13,
-    studentName: 'ଶୁଭଶ୍ରୀ ବାରିକ',
+    studentName: 'ଶୁଭଶ୍ ବାରିକ',
     class: 3,
   },
   {
@@ -76,7 +76,7 @@ export const class3Students = [
   },
   {
     roll: 16,
-    studentName: 'ସ୍ନେହା ବେହେରା',
+    studentName: 'ସ୍ନେହ ବେହେରା',
     class: 3,
   },
   {
@@ -96,12 +96,12 @@ export const class3Students = [
   },
   {
     roll: 20,
-    studentName: 'ଲୋକନାଥ ପୃଷ୍ଟି',
+    studentName: 'ଲୋକନାଥ ପୃଷ୍',
     class: 3,
   },
   {
     roll: 21,
-    studentName: 'ଅଭିଜିତ ବାରିକ',
+    studentName: 'ଅଭିବିତ ବାରିକ',
     class: 3,
   },
   {
@@ -136,7 +136,7 @@ export const class3Students = [
   },
   {
     roll: 28,
-    studentName: 'ଲିପିକା ପୃଷ୍ଟି',
+    studentName: 'ଲିପିକ ପୃଷ୍ଟି',
     class: 3,
   },
   {
@@ -146,7 +146,7 @@ export const class3Students = [
   },
   {
     roll: 30,
-    studentName: 'ଆଦିତ୍ୟ ଦାଶ',
+    studentName: 'ଆଦିତ୍ ଦାଶ',
     class: 3,
   },
   {
@@ -171,12 +171,12 @@ export const class3Students = [
   },
   {
     roll: 35,
-    studentName: 'କାବ୍ୟ ଜେନା',
+    studentName: 'କାବ୍ ଜେନା',
     class: 3,
   },
   {
     roll: 36,
-    studentName: 'ମାମୁନି ମୁଦୁଲି',
+    studentName: 'ମାମୁନି ମୁଦଲି',
     class: 3,
   },
   {
@@ -204,7 +204,7 @@ export const class3Students = [
 export const class2Students = [
   {
     roll: 1,
-    studentName: 'ଆଦ୍ୟାଶା ଭୋଇ',
+    studentName: 'ଆଦ୍ଶା ଭୋଇ',
     class: 2,
   },
   {
@@ -214,7 +214,7 @@ export const class2Students = [
   },
   {
     roll: 3,
-    studentName: 'ଅମିତ କୁମାର ସାମଲ',
+    studentName: 'ଅମିତ କୁମର ସାମଲ',
     class: 2,
   },
   {
@@ -234,7 +234,7 @@ export const class2Students = [
   },
   {
     roll: 7,
-    studentName: 'ସ୍ଥିତିପ୍ରଜ୍ଞା ଭୋଇ',
+    studentName: 'ସ୍ଥିତପ୍ରଜ୍ଞା ଭୋଇ',
     class: 2,
   },
   {
@@ -249,12 +249,12 @@ export const class2Students = [
   },
   {
     roll: 10,
-    studentName: 'ଅନିଶା ଖଟୋଇ',
+    studentName: 'ଅନିଶ ଖଟୋଇ',
     class: 2,
   },
   {
     roll: 11,
-    studentName: 'ସୋନି ଦେହୁରୀ',
+    studentName: 'ସନି ଦେହୁରୀ',
     class: 2,
   },
   {
@@ -269,12 +269,12 @@ export const class2Students = [
   },
   {
     roll: 14,
-    studentName: 'ସୋନାଲି ଦେହୁରୀ',
+    studentName: 'ସୋନଲ ଦେହୁରୀ',
     class: 2,
   },
   {
     roll: 15,
-    studentName: 'ରାଜନନ୍ଦିନୀ ସେଠି',
+    studentName: 'ରାଜନନ୍ଦନୀ ସେଠି',
     class: 2,
   },
   {
@@ -294,7 +294,7 @@ export const class2Students = [
   },
   {
     roll: 19,
-    studentName: 'ସଙ୍ଗୀତ ନାୟକ',
+    studentName: 'ସଙ୍ଗତ ନାୟକ',
     class: 2,
   },
   {
@@ -314,7 +314,7 @@ export const class2Students = [
   },
   {
     roll: 23,
-    studentName: 'ପ୍ରମୋଦିନୀ ଦାସ',
+    studentName: 'ପ୍ରମଦିନୀ ଦାସ',
     class: 2,
   },
   {
@@ -324,7 +324,7 @@ export const class2Students = [
   },
   {
     roll: 25,
-    studentName: 'ଦାଶରଥି ତ୍ରିପାଠୀ',
+    studentName: 'ଦାଶରଥି ତ୍ପାଠୀ',
     class: 2,
   },
   {
@@ -344,7 +344,7 @@ export const class2Students = [
   },
   {
     roll: 29,
-    studentName: 'ଅମିତ ଭୋଇ',
+    studentName: 'ଅମିତ ଭଇ',
     class: 2,
   },
   {
@@ -359,7 +359,7 @@ export const class2Students = [
   },
   {
     roll: 32,
-    studentName: 'ବିନାୟକ ଆଚାର୍ଯ୍ୟ',
+    studentName: 'ବିନାୟକ ଆଚାର୍',
     class: 2,
   },
   {
@@ -389,7 +389,7 @@ export const class2Students = [
   },
   {
     roll: 38,
-    studentName: 'ନଜ୍ମା ବେଗମ',
+    studentName: 'ନଜ୍ ବେଗମ',
     class: 2,
   },
   {
@@ -399,7 +399,7 @@ export const class2Students = [
   },
   {
     roll: 40,
-    studentName: 'ସ୍ମିତାରାଣୀ ହେମ୍ବ୍ରମ',
+    studentName: 'ସ୍ମିତାରାଣୀ ହେମ୍ବ୍ମ',
     class: 2,
   },
 ];
@@ -412,7 +412,7 @@ export const class1Students = [
   },
   {
     roll: 2,
-    studentName: 'କୁରୁକ୍ଷେତ୍ର ମୁଣ୍ଡା',
+    studentName: 'କୁରୁକ୍ଷେତ୍ର ମୁଣ୍ଡ',
     class: 1,
   },
   {
@@ -422,12 +422,12 @@ export const class1Students = [
   },
   {
     roll: 4,
-    studentName: 'ନୁର ଅହମ୍ମଦ',
+    studentName: 'ନୁର ଅହମ୍ଦ',
     class: 1,
   },
   {
     roll: 5,
-    studentName: 'ପ୍ରଶ୍ନଜିତ କର',
+    studentName: 'ପ୍ରଶ୍ନଜତ କର',
     class: 1,
   },
   {
@@ -437,12 +437,12 @@ export const class1Students = [
   },
   {
     roll: 7,
-    studentName: 'ସିମାଞ୍ଚଳ ପରିଜା',
+    studentName: 'ସିମାଞ୍ଳ ପରିଜା',
     class: 1,
   },
   {
     roll: 8,
-    studentName: 'ଦୁର୍ଯ୍ୟୋଧନ ରଣସିଂହ',
+    studentName: 'ଦୁର୍ଯ୍ୟଧନ ରଣସିଂହ',
     class: 1,
   },
   {
@@ -452,7 +452,7 @@ export const class1Students = [
   },
   {
     roll: 10,
-    studentName: 'କ୍ଷମା ସାଗର ମୂଳିଆ',
+    studentName: 'କ୍ଷମା ସାଗର ମୂଳଆ',
     class: 1,
   },
   {
@@ -467,7 +467,7 @@ export const class1Students = [
   },
   {
     roll: 13,
-    studentName: 'ସୂର୍ଯ୍ୟବଂଶୀ ପତ୍ରୀ',
+    studentName: 'ସୂର୍ଯ୍ବଂଶୀ ପତ୍ରୀ',
     class: 1,
   },
   {
@@ -477,12 +477,12 @@ export const class1Students = [
   },
   {
     roll: 15,
-    studentName: 'ପରମେଶ୍ୱର ପରମାଣିକ',
+    studentName: 'ପରମେଶ୍ୱର ପରମଣିକ',
     class: 1,
   },
   {
     roll: 16,
-    studentName: 'ଚାନ୍ଦିନୀ ଚୌଧୁରୀ',
+    studentName: 'ଚାନ୍ଦିନୀ ଚଧୁରୀ',
     class: 1,
   },
   {
@@ -492,7 +492,7 @@ export const class1Students = [
   },
   {
     roll: 18,
-    studentName: 'ଅର୍ଣ୍ଣପୂର୍ଣ୍ଣା ମହାନ୍ତି',
+    studentName: 'ଅର୍ଣ୍ପର୍ଣ୍ଣ ମହାନ୍ତି',
     class: 1,
   },
   {
@@ -522,7 +522,7 @@ export const class1Students = [
   },
   {
     roll: 24,
-    studentName: 'ସୌକତ ଆଜହାର',
+    studentName: 'ସକତ ଆଜହାର',
     class: 1,
   },
   {
@@ -615,7 +615,7 @@ export const class4Students = [
   },
   {
     roll: 2,
-    studentName: 'ଅନ୍ବେକ ବେହେରା',
+    studentName: 'ଅନ୍ବକ ବେହେରା',
     class: 4,
   },
   {
@@ -630,12 +630,12 @@ export const class4Students = [
   },
   {
     roll: 5,
-    studentName: 'ଶୁଭଲକ୍ଷ୍ମୀ ଦାସ',
+    studentName: 'ଶୁଭଲକ୍ଷ୍ ଦାସ',
     class: 4,
   },
   {
     roll: 6,
-    studentName: 'ରଶ୍ମିରଞ୍ଜନ ବାରିକ',
+    studentName: 'ରଶ୍ମିଞ୍ଜନ ବାରିକ',
     class: 4,
   },
   {
@@ -660,12 +660,12 @@ export const class4Students = [
   },
   {
     roll: 11,
-    studentName: 'ଶ୍ଵେତପଦ୍ମା ଦାସ',
+    studentName: 'ଶ୍ଵେତପଦ୍ ଦାସ',
     class: 4,
   },
   {
     roll: 12,
-    studentName: 'ମୃଣମୟୀ ନାଥ',
+    studentName: 'ମଣମୟୀ ନାଥ',
     class: 4,
   },
   {
@@ -680,7 +680,7 @@ export const class4Students = [
   },
   {
     roll: 15,
-    studentName: 'ଶ୍ୱେତପୁଷ୍ପା ମହାନ୍ତି',
+    studentName: 'ଶ୍ୱେତପଷ୍ପ ମହାନ୍ତି',
     class: 4,
   },
   {
@@ -705,7 +705,7 @@ export const class4Students = [
   },
   {
     roll: 20,
-    studentName: 'ଇତିପୁଷ୍ପା ଦାସ',
+    studentName: 'ଇତିପଷ୍ପ ଦାସ',
     class: 4,
   },
   {
@@ -720,7 +720,7 @@ export const class4Students = [
   },
   {
     roll: 23,
-    studentName: 'ପ୍ରିୟାଂଶୁ ଗଡ଼ନାୟକ',
+    studentName: 'ପ୍ରିୟଶୁ ଗଡ଼ନାୟକ',
     class: 4,
   },
   {
@@ -740,7 +740,7 @@ export const class4Students = [
   },
   {
     roll: 27,
-    studentName: 'ମମତା ବାନାର୍ଜୀ',
+    studentName: 'ମମତା ବାନାର୍',
     class: 4,
   },
   {
@@ -750,7 +750,7 @@ export const class4Students = [
   },
   {
     roll: 29,
-    studentName: 'ସ୍ଵରା ଶିବାଙ୍ଗୀ ପଣ୍ଡା',
+    studentName: 'ସ୍ଵରା ଶିବଙ୍ଗୀ ପଣ୍ଡା',
     class: 4,
   },
   {
@@ -775,17 +775,17 @@ export const class4Students = [
   },
   {
     roll: 34,
-    studentName: 'କୀର୍ତିପ୍ରିୟା ନାୟକ',
+    studentName: 'କୀର୍ପ୍ରିୟା ନାୟକ',
     class: 4,
   },
   {
     roll: 35,
-    studentName: 'ଲିପ୍ସା ରାଣୀ ଦାସ',
+    studentName: 'ଲିପ୍ସ ରାଣୀ ଦାସ',
     class: 4,
   },
   {
     roll: 36,
-    studentName: 'ଜ୍ୟାକଲିନ ନାୟକ',
+    studentName: 'ଜ୍ୟକଲିନ ନାୟକ',
     class: 4,
   },
   {
@@ -828,7 +828,7 @@ export const class5Students = [
   },
   {
     roll: 4,
-    studentName: 'ଏସ କେ ଖାତୁନ ',
+    studentName: 'ଏସ କେ ଖାତନ ',
     class: 5,
   },
   {
@@ -848,7 +848,7 @@ export const class5Students = [
   },
   {
     roll: 8,
-    studentName: 'କୀର୍ତ୍ତିବାନ ବେହେରା ',
+    studentName: 'କୀର୍ତ୍ତବାନ ବେହେରା ',
     class: 5,
   },
   {
@@ -863,7 +863,7 @@ export const class5Students = [
   },
   {
     roll: 11,
-    studentName: 'ଜ୍ୟୋତିରାଣୀ ପାଇକରାୟ ',
+    studentName: 'ଜ୍ୟତିରାଣୀ ପାଇକରାୟ ',
     class: 5,
   },
   {
@@ -878,12 +878,12 @@ export const class5Students = [
   },
   {
     roll: 14,
-    studentName: 'ସୋଫିଆ ଫିର୍ଦୋଷ ',
+    studentName: 'ସୋଫିଆ ଫିର୍ଦଷ ',
     class: 5,
   },
   {
     roll: 15,
-    studentName: 'ହିତାଂଶୁ ବେହେରା ',
+    studentName: 'ହିତଶୁ ବେହେରା ',
     class: 5,
   },
   {
@@ -898,7 +898,7 @@ export const class5Students = [
   },
   {
     roll: 18,
-    studentName: 'ସ୍ମୃତିରେଖା ସେନାପତି ',
+    studentName: 'ସ୍ମତିରେଖା ସେନାପତି ',
     class: 5,
   },
   {
@@ -923,7 +923,7 @@ export const class5Students = [
   },
   {
     roll: 23,
-    studentName: 'ସୁରଜ ସୂର୍ଯ୍ୟବଂଶୀ',
+    studentName: 'ସୁରଜ ସୂର୍ଯ୍ବଶୀ',
     class: 5,
   },
   {
@@ -938,7 +938,7 @@ export const class5Students = [
   },
   {
     roll: 26,
-    studentName: 'ପ୍ରିକ୍ସ ପ୍ରିୟକ୍ସl ',
+    studentName: 'ପ୍ରିକ୍ସ ପ୍ରିୟକ୍ ',
     class: 5,
   },
   {
@@ -963,7 +963,7 @@ export const class5Students = [
   },
   {
     roll: 31,
-    studentName: 'ଅପର୍ଣ୍ଣା ନାୟକ ',
+    studentName: 'ଅପର୍ଣ୍ଣ ନାୟକ ',
     class: 5,
   },
   {
@@ -978,7 +978,7 @@ export const class5Students = [
   },
   {
     roll: 34,
-    studentName: 'ବିର୍ସା ମୁଣ୍ଡା ',
+    studentName: 'ବିର୍ସ ମୁଣ୍ଡା ',
     class: 5,
   },
   {
@@ -988,7 +988,7 @@ export const class5Students = [
   },
   {
     roll: 36,
-    studentName: 'ମୃଣାଲିନି ମହାରଣା ',
+    studentName: 'ମୃଣଲିନି ମହାରଣା ',
     class: 5,
   },
   {
@@ -998,17 +998,17 @@ export const class5Students = [
   },
   {
     roll: 38,
-    studentName: 'ବିଘ୍ନେଶ୍ୱର ମୁଣ୍ଡା ',
+    studentName: 'ବିଘ୍ନଶ୍ୱର ମୁଣ୍ଡା ',
     class: 5,
   },
   {
     roll: 39,
-    studentName: 'ମନସ୍ବିନୀ ପତ୍ରୀ',
+    studentName: 'ମନସ୍ନୀ ପତ୍ରୀ',
     class: 5,
   },
   {
     roll: 40,
-    studentName: 'ସ୍ୱାସ୍ୱତ ବେହେରା ',
+    studentName: 'ସ୍ୱସ୍ୱତ ବେହେରା ',
     class: 5,
   },
 ];
