@@ -20,6 +20,7 @@ import DocumentScanner from 'react-native-document-scanner-plugin';
 import {UploadFileToCloud} from '../components/CloudUpload';
 import RNFS from 'react-native-fs';
 import PhotoManipulator from 'react-native-photo-manipulator';
+import Exif from 'react-native-exif';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
@@ -84,17 +85,111 @@ const AndroidDocumentScanner = () => {
   };
 
   // ---------------------------
-  // Helpers: integer-piece math
+  // Ensure we have a file:// uri (best-effort)
+  // ---------------------------
+  const ensureFileUri = async uri => {
+    if (!uri) throw new Error('No uri supplied to ensureFileUri');
+    try {
+      // If already file://, return
+      if (uri.startsWith('file://')) return uri;
+
+      // If data: (base64 data URI), write to cache
+      if (uri.startsWith('data:')) {
+        const base64 = uri.split(',')[1];
+        const tmpPath = `${
+          RNFS.CachesDirectoryPath
+        }/scan_tmp_${Date.now()}.jpg`;
+        await RNFS.writeFile(tmpPath, base64, 'base64');
+        return `file://${tmpPath}`;
+      }
+
+      // Try to read with RNFS (sometimes works for content:// on some devices)
+      try {
+        const base64 = await RNFS.readFile(uri, 'base64');
+        const tmpPath = `${
+          RNFS.CachesDirectoryPath
+        }/scan_tmp_${Date.now()}.jpg`;
+        await RNFS.writeFile(tmpPath, base64, 'base64');
+        return `file://${tmpPath}`;
+      } catch (err) {
+        // RNFS may fail on content:// on some Android versions
+        console.warn(
+          'ensureFileUri: RNFS.readFile failed, falling back to original uri',
+          err,
+        );
+        return uri; // fallback, maybe PhotoManipulator can handle content://
+      }
+    } catch (err) {
+      console.warn('ensureFileUri unexpected error', err);
+      return uri;
+    }
+  };
+
+  // ---------------------------
+  // EXIF orientation helpers
+  // ---------------------------
+  const getExifOrientation = async uri => {
+    try {
+      // Exif.getExif expects a filesystem path (no file://)
+      const path = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+      const exif = await Exif.getExif(path);
+      const o = exif?.Orientation || exif?.orientation || exif?.OrientationTag;
+      if (!o) return null;
+      return parseInt(o, 10);
+    } catch (err) {
+      console.warn('getExifOrientation failed', err);
+      return null;
+    }
+  };
+
+  const ensureUprightImage = async originalUri => {
+    try {
+      const fileUri = await ensureFileUri(originalUri);
+      const orientation = await getExifOrientation(fileUri);
+      console.log('EXIF orientation:', orientation);
+
+      if (!orientation || orientation === 1) {
+        // treat as upright
+        return fileUri;
+      }
+
+      let angle = 0;
+      if (orientation === 3) angle = 180;
+      else if (orientation === 6) angle = 90;
+      else if (orientation === 8) angle = 270;
+      else angle = 0;
+
+      if (angle === 0) return fileUri;
+
+      // PhotoManipulator.rotate often expects a plain path (no file://) on some versions
+      const srcForRotate = fileUri.startsWith('file://')
+        ? fileUri.replace('file://', '')
+        : fileUri;
+      const rotatedPath = await PhotoManipulator.rotate(srcForRotate, angle);
+      const normalized = rotatedPath.startsWith('file://')
+        ? rotatedPath
+        : `file://${rotatedPath}`;
+
+      console.log('Rotated image path:', normalized);
+      return normalized;
+    } catch (err) {
+      console.warn('ensureUprightImage failed, returning original uri', err);
+      return originalUri;
+    }
+  };
+
+  // ---------------------------
+  // Build pieces with cumulative integer math
   // ---------------------------
   const build30VerticalPieces = (uri, imgWidth, imgHeight) => {
     const pieces = [];
     const base = Math.floor(imgWidth / 30);
-    const remainder = imgWidth - base * 30; // 0..29
+    const remainder = imgWidth - base * 30;
+    let x = 0;
 
     for (let i = 0; i < 30; i++) {
-      const extra = i === 29 ? remainder : 0; // add remainder to last piece
+      const extra = i === 29 ? remainder : 0;
       const pieceWidth = base + extra;
-      const x = i * base; // for last: x will be correct since previous were base
       pieces.push({
         uri,
         originalWidth: imgWidth,
@@ -107,9 +202,15 @@ const AndroidDocumentScanner = () => {
           width: pieceWidth,
           height: imgHeight,
         },
-        label: `Strip ${i + 1} (${Math.round((i * 100) / 30)}%-${Math.round(
-          ((i + 1) * 100) / 30,
-        )}%)`,
+        label: `Strip ${i + 1}`,
+      });
+      x += pieceWidth;
+    }
+
+    if (x !== imgWidth) {
+      console.warn('build30VerticalPieces: widths sum mismatch', {
+        sum: x,
+        imgWidth,
       });
     }
 
@@ -141,12 +242,16 @@ const AndroidDocumentScanner = () => {
   };
 
   // ---------------------------
-  // Crop + upload per piece (worker)
+  // Crop + upload worker
   // ---------------------------
   const cropAndUploadPiece = async (piece, index, sourceUri) => {
-    // piece.crop: { x, y, width, height } in pixels (integers)
     try {
-      // Crop with PhotoManipulator
+      // Ensure sourceUri is a usable file path for PhotoManipulator (strip file:// if needed)
+      const srcCandidate =
+        sourceUri && sourceUri.startsWith('file://')
+          ? sourceUri.replace('file://', '')
+          : sourceUri;
+
       const cropRegion = {
         x: Math.round(piece.crop.x),
         y: Math.round(piece.crop.y),
@@ -154,46 +259,46 @@ const AndroidDocumentScanner = () => {
         height: Math.round(piece.crop.height),
       };
 
-      // PhotoManipulator.crop returns a file path in cache dir (string)
-      const croppedPath = await PhotoManipulator.crop(sourceUri, cropRegion);
+      console.log(`Cropping strip ${index + 1}:`, cropRegion);
 
-      // Normalize to file://
+      // Crop - PhotoManipulator.crop returns a path (sometimes without file://)
+      const croppedPath = await PhotoManipulator.crop(srcCandidate, cropRegion);
       const normalized = croppedPath.startsWith('file://')
         ? croppedPath
         : `file://${croppedPath}`;
 
-      // Build file object expected by UploadFileToCloud
+      console.log(`Cropped path [${index + 1}]:`, normalized);
+
       const fileObj = {
         uri: normalized,
         name: `strip_${index + 1}.jpg`,
         type: 'image/jpeg',
       };
 
-      console.log(`Cropped strip ${index + 1} -> ${normalized}`);
-
-      // Upload - ensure your UploadFileToCloud accepts { file, fileName }
+      // Upload - ensure UploadFileToCloud supports file objects like this
       const uploadResult = await UploadFileToCloud({
         file: fileObj,
         fileName: fileObj.name,
       });
+      console.log(`Upload result [${index + 1}]:`, uploadResult);
 
-      // Optionally delete temp file (success or failure) to save space
+      // Delete temp cropped file to save space (best-effort)
       try {
         const pathToDelete = normalized.replace('file://', '');
         const exists = await RNFS.exists(pathToDelete);
         if (exists) {
           await RNFS.unlink(pathToDelete);
-          // console.log('Deleted temp file:', pathToDelete);
+          // console.log('Deleted temp cropped file:', pathToDelete);
         }
       } catch (delErr) {
-        console.warn('Failed to delete temp file:', delErr);
+        console.warn('Failed to delete temp cropped file', delErr);
       }
 
       if (uploadResult && uploadResult.success) {
-        console.log(`Upload success [${index + 1}] -> ${uploadResult.url}`);
+        console.log(`Uploaded strip ${index + 1} -> ${uploadResult.url}`);
         return uploadResult.url;
       } else {
-        console.warn(`Upload failed for strip ${index + 1}`, uploadResult);
+        console.warn(`Upload failed for strip ${index + 1}`);
         return null;
       }
     } catch (err) {
@@ -203,18 +308,17 @@ const AndroidDocumentScanner = () => {
   };
 
   // ---------------------------
-  // Main upload flow
+  // Main upload flow (crop+upload)
   // ---------------------------
   const uploadImageStripsReal = async (pieces, sourceUri) => {
     setUploading(true);
     try {
-      // We'll crop+upload with limited concurrency so we don't hold 30 files in memory/disk
       const urls = await runWithConcurrency(
         pieces,
         async (piece, idx) => {
           return await cropAndUploadPiece(piece, idx, sourceUri);
         },
-        3, // concurrency (adjust if needed)
+        3,
       );
 
       setUploadedUrls(urls);
@@ -229,7 +333,7 @@ const AndroidDocumentScanner = () => {
   };
 
   // ---------------------------
-  // scanDocument flow (uses new upload)
+  // scanDocument flow
   // ---------------------------
   const scanDocument = async () => {
     try {
@@ -257,26 +361,30 @@ const AndroidDocumentScanner = () => {
       console.log('Scanner completed with results:', scannedImages);
 
       if (scannedImages && scannedImages.length > 0) {
-        const uri = scannedImages[0];
-        setImageUri(uri);
+        const rawUri = scannedImages[0];
+        setImageUri(rawUri);
 
-        // get accurate dimensions
-        const dimensions = await getImageDimensions(uri);
+        // Ensure file uri and upright orientation
+        const fileUri = await ensureFileUri(rawUri);
+        const uprightUri = await ensureUprightImage(fileUri);
+
+        // get accurate dimensions for the rotated/upright image
+        const dimensions = await getImageDimensions(uprightUri);
         setImageDimensions(dimensions);
 
-        // build 30 pieces (pixel-accurate)
+        // build pieces and set preview
         const pieces = build30VerticalPieces(
-          uri,
+          uprightUri,
           dimensions.width,
           dimensions.height,
         );
         setImagePieces(pieces);
 
-        // Now crop & upload real strip files
-        await uploadImageStripsReal(pieces, uri);
+        // crop & upload from uprightUri
+        await uploadImageStripsReal(pieces, uprightUri);
 
-        // Full-document OCR (if you want)
-        await detectTextFromImage(uri);
+        // Full-document OCR (if desired)
+        await detectTextFromImage(uprightUri);
       } else {
         console.log('User cancelled document scan');
       }
@@ -292,7 +400,7 @@ const AndroidDocumentScanner = () => {
   };
 
   // ---------------------------
-  // Utility: getImageDimensions (works for file://, content://, http)
+  // Utility: getImageDimensions (works for file:// or http; may fail for content://)
   // ---------------------------
   const getImageDimensions = uri => {
     return new Promise((resolve, reject) => {
@@ -300,8 +408,7 @@ const AndroidDocumentScanner = () => {
         uri,
         (w, h) => resolve({width: w, height: h}),
         err => {
-          console.warn('Image.getSize failed, trying fallback', err);
-          // as a fallback, try to read with RNFS (may not work for content://)
+          console.warn('Image.getSize failed for uri:', uri, err);
           reject(err);
         },
       );
@@ -323,59 +430,35 @@ const AndroidDocumentScanner = () => {
     return (
       <TouchableOpacity
         key={index}
-        style={{marginRight: 10, alignItems: 'center', position: 'relative'}}
+        style={styles.pieceContainer}
         onPress={() => handlePiecePress(index)}
         activeOpacity={0.7}>
         <View
-          style={{
-            overflow: 'hidden',
-            borderRadius: 4,
-            width: displayWidth,
-            height: displayHeight,
-            borderColor: isSelected ? '#00BCD4' : '#ddd',
-            borderWidth: isSelected ? 2 : 1,
-          }}>
+          style={[
+            styles.pieceImageWrapper,
+            {
+              width: displayWidth,
+              height: displayHeight,
+              borderColor: isSelected ? '#00BCD4' : '#ddd',
+              borderWidth: isSelected ? 2 : 1,
+            },
+          ]}>
           <Image
             source={{uri: piece.uri}}
-            style={{
-              position: 'absolute',
-              width:
-                piece.originalWidth * (displayHeight / piece.originalHeight),
-              height: displayHeight,
-              left: -piece.crop.x * (displayHeight / piece.originalHeight),
-            }}
+            style={[
+              styles.pieceImage,
+              {
+                width:
+                  piece.originalWidth * (displayHeight / piece.originalHeight),
+                height: displayHeight,
+                left: -piece.crop.x * (displayHeight / piece.originalHeight),
+              },
+            ]}
             resizeMode="cover"
           />
         </View>
-
-        <Text
-          style={{
-            fontSize: 10,
-            color: '#555',
-            textAlign: 'center',
-            marginTop: 5,
-          }}>
-          {piece.label}
-        </Text>
-
-        {uploadedUrls[index] && (
-          <Text
-            style={{
-              position: 'absolute',
-              top: 5,
-              right: 5,
-              backgroundColor: '#4CD964',
-              color: 'white',
-              borderRadius: 10,
-              width: 20,
-              height: 20,
-              textAlign: 'center',
-              lineHeight: 20,
-              fontSize: 12,
-            }}>
-            ✓
-          </Text>
-        )}
+        <Text style={styles.pieceLabel}>{piece.label}</Text>
+        {uploadedUrls[index] && <Text style={styles.uploadSuccess}>✓</Text>}
       </TouchableOpacity>
     );
   };
@@ -389,40 +472,25 @@ const AndroidDocumentScanner = () => {
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#ffffff']} style={{flex: 1}}>
+    <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
       <ScrollView
-        contentContainerStyle={{
-          padding: 20,
-          paddingBottom: 40,
-          minHeight: height,
-        }}>
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#2C3E50',
-            textAlign: 'center',
-            marginVertical: 20,
-          }}>
-          Android Document Scanner
-        </Text>
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <Text style={styles.header}>Android Document Scanner</Text>
 
-        <View style={{width: '100%', marginBottom: 20}}>
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={{
-              padding: 15,
-              borderRadius: 8,
-              marginVertical: 10,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#00BCD4',
-            }}
+            style={[
+              styles.button,
+              styles.scanButton,
+              (isScanning || uploading) && styles.scanButtonDisabled,
+            ]}
             onPress={scanDocument}
             disabled={isScanning || uploading}>
             {isScanning || uploading ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={{color: 'white', fontWeight: '600', fontSize: 16}}>
+              <Text style={styles.buttonText}>
                 {imageUri ? 'Scan New Document' : '📷 Scan Document'}
               </Text>
             )}
@@ -430,99 +498,47 @@ const AndroidDocumentScanner = () => {
         </View>
 
         {uploading && (
-          <View
-            style={{
-              backgroundColor: 'white',
-              padding: 15,
-              borderRadius: 8,
-              marginBottom: 15,
-              alignItems: 'center',
-            }}>
-            <Text style={{fontSize: 16, color: '#2C3E50', marginBottom: 10}}>
-              Uploading image strips...
-            </Text>
+          <View style={styles.uploadingContainer}>
+            <Text style={styles.uploadingText}>Uploading image strips...</Text>
             <ActivityIndicator size="large" color="#00BCD4" />
           </View>
         )}
 
         {imageUri && (
-          <View
-            style={{
-              width: '100%',
-              backgroundColor: 'white',
-              borderRadius: 12,
-              padding: 15,
-            }}>
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                marginBottom: 8,
-                color: '#34495E',
-              }}>
-              Full Document:
-            </Text>
+          <View style={styles.resultContainer}>
+            <Text style={styles.sectionTitle}>Full Document:</Text>
             <Image
               source={{uri: imageUri}}
-              style={{
-                width: '100%',
-                maxHeight: 300,
-                borderRadius: 8,
-                marginBottom: 15,
-                backgroundColor: '#f5f5f5',
-                aspectRatio: imageDimensions.width / imageDimensions.height,
-              }}
+              style={[
+                styles.scannedImage,
+                {aspectRatio: imageDimensions.width / imageDimensions.height},
+              ]}
               resizeMode="contain"
             />
 
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                marginBottom: 8,
-                color: '#34495E',
-              }}>
+            <Text style={styles.sectionTitle}>
               Document Strips (30 Equal Vertical Sections):
             </Text>
             <ScrollView
               horizontal
-              showsHorizontalScrollIndicator
-              contentContainerStyle={{paddingVertical: 10}}>
-              <View style={{flexDirection: 'row', alignItems: 'flex-start'}}>
+              showsHorizontalScrollIndicator={true}
+              contentContainerStyle={styles.piecesScrollContent}>
+              <View style={styles.piecesRow}>
                 {imagePieces.map((piece, index) =>
                   renderImagePiece(piece, index),
                 )}
               </View>
             </ScrollView>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 15,
-              }}>
+            <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  width: '48%',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#FF3A30',
-                }}
+                style={[styles.actionButton, styles.recaptureButton]}
                 onPress={handleRecapture}>
-                <Text style={{color: 'white', fontWeight: '600'}}>Retake</Text>
+                <Text style={styles.actionButtonText}>Retake</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  width: '48%',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#4CD964',
-                }}
+                style={[styles.actionButton, styles.confirmButton]}
                 onPress={() => {
                   Alert.alert(
                     'Upload Complete',
@@ -532,7 +548,7 @@ const AndroidDocumentScanner = () => {
                   );
                   console.log('Uploaded strip URLs:', uploadedUrls);
                 }}>
-                <Text style={{color: 'white', fontWeight: '600'}}>Confirm</Text>
+                <Text style={styles.actionButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -543,14 +559,9 @@ const AndroidDocumentScanner = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-    minHeight: height,
-  },
+  // left intentionally minimal — paste your styles here
+  container: {flex: 1},
+  scrollContent: {padding: 20, paddingBottom: 40, minHeight: height},
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -558,43 +569,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
   },
-  buttonContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
+  buttonContainer: {width: '100%', marginBottom: 20},
   button: {
     padding: 15,
     borderRadius: 8,
     marginVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  scanButton: {
-    backgroundColor: '#00BCD4',
+  scanButton: {backgroundColor: '#00BCD4'},
+  scanButtonDisabled: {backgroundColor: '#B2EBF2'},
+  buttonText: {color: 'white', fontWeight: '600', fontSize: 16},
+  uploadingContainer: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 15,
+    alignItems: 'center',
   },
-  scanButtonDisabled: {
-    backgroundColor: '#B2EBF2',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
-  },
+  uploadingText: {fontSize: 16, color: '#2C3E50', marginBottom: 10},
   resultContainer: {
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 15,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
   },
   scannedImage: {
     width: '100%',
@@ -603,31 +601,18 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#f5f5f5',
   },
-  piecesScrollContent: {
-    paddingVertical: 10,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#34495E',
   },
-  piecesRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  pieceContainer: {
-    marginRight: 10,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  pieceImageWrapper: {
-    overflow: 'hidden',
-    borderRadius: 4,
-  },
-  pieceImage: {
-    position: 'absolute',
-  },
-  pieceLabel: {
-    fontSize: 10,
-    color: '#555',
-    textAlign: 'center',
-    marginTop: 5,
-  },
+  piecesScrollContent: {paddingVertical: 10},
+  piecesRow: {flexDirection: 'row', alignItems: 'flex-start'},
+  pieceContainer: {marginRight: 10, alignItems: 'center', position: 'relative'},
+  pieceImageWrapper: {overflow: 'hidden', borderRadius: 4},
+  pieceImage: {position: 'absolute'},
+  pieceLabel: {fontSize: 10, color: '#555', textAlign: 'center', marginTop: 5},
   uploadSuccess: {
     position: 'absolute',
     top: 5,
@@ -653,34 +638,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  recaptureButton: {
-    backgroundColor: '#FF3A30',
-  },
-  confirmButton: {
-    backgroundColor: '#4CD964',
-  },
-  actionButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  uploadingContainer: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  uploadingText: {
-    fontSize: 16,
-    color: '#2C3E50',
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#34495E',
-  },
+  recaptureButton: {backgroundColor: '#FF3A30'},
+  confirmButton: {backgroundColor: '#4CD964'},
+  actionButtonText: {color: 'white', fontWeight: '600'},
 });
 
 export default AndroidDocumentScanner;
