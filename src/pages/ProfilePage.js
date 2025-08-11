@@ -315,150 +315,59 @@ const AndroidDocumentScanner = () => {
                 maxHeight: '75%',
               }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                <View>
+                <ScrollView>
                   {/* Header Row */}
+                  {/* Table Header */}
                   <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: '#f5f5f5',
-                      borderBottomWidth: 1,
-                      borderColor: '#ddd',
-                    }}>
-                    <View
-                      style={{
-                        padding: 10,
-                        width: 60,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderRightWidth: 1,
-                        borderColor: '#ddd',
-                        backgroundColor: '#fafafa',
-                      }}>
-                      <Text
-                        style={{
-                          fontWeight: 'bold',
-                          color: '#333',
-                          fontSize: 14,
-                        }}>
-                        Sl. No.
-                      </Text>
+                    style={{flexDirection: 'row', backgroundColor: '#f5f5f5'}}>
+                    <View style={styles.tableHeaderCellFixed}>
+                      <Text style={styles.headerText}>Sl. No.</Text>
                     </View>
-                    <View
-                      style={{
-                        padding: 10,
-                        width: 150,
-                        justifyContent: 'center',
-                        alignItems: 'flex-start',
-                        borderRightWidth: 1,
-                        borderColor: '#ddd',
-                        backgroundColor: '#f5f5f5',
-                      }}>
-                      <Text
-                        style={{
-                          fontWeight: 'bold',
-                          color: '#333',
-                          fontSize: 14,
-                        }}>
+                    <View style={[styles.tableHeaderCellFixed, {width: 140}]}>
+                      <Text style={[styles.headerText, {width: 140}]}>
                         Skill
                       </Text>
                     </View>
                     {Array.from({length: 30}).map((_, i) => (
-                      <View
-                        key={`header-${i}`}
-                        style={{
-                          padding: 10,
-                          width: 50,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRightWidth: 1,
-                          borderColor: '#ddd',
-                          backgroundColor: '#f5f5f5',
-                        }}>
-                        <Text
-                          style={{
-                            fontWeight: 'bold',
-                            color: '#333',
-                            fontSize: 14,
-                          }}>
-                          {i + 1}
-                        </Text>
+                      <View key={`header-${i}`} style={styles.tableHeaderCell}>
+                        <Text style={styles.headerText}>{i + 1}</Text>
                       </View>
                     ))}
                   </View>
 
-                  {/* Body Rows */}
+                  {/* Table Body */}
                   {activeData?.result
                     ?.flatMap(category => category.output)
                     ?.map((skillRow, rowIndex) => (
                       <View
                         key={`row-${rowIndex}`}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor:
-                            rowIndex % 2 === 0 ? '#ffffff' : '#f9f9f9',
-                        }}>
-                        <View
-                          style={{
-                            padding: 10,
-                            width: 60,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            borderRightWidth: 1,
-                            borderColor: '#eee',
-                            backgroundColor: '#fafafa',
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              color: '#444',
-                            }}>
-                            {rowIndex + 1}
-                          </Text>
+                        style={[
+                          styles.tableRow,
+                          rowIndex % 2 === 0 ? styles.evenRow : styles.oddRow,
+                        ]}>
+                        <View style={styles.tableCellFixed}>
+                          <Text style={styles.cellText}>{rowIndex + 1}</Text>
                         </View>
-                        <View
-                          style={{
-                            padding: 10,
-                            width: 150,
-                            justifyContent: 'center',
-                            alignItems: 'flex-start',
-                            borderRightWidth: 1,
-                            borderColor: '#eee',
-                          }}>
+                        <View style={[styles.tableCellFixed, {width: 140}]}>
                           <Text
-                            style={{
-                              fontSize: 14,
-                              color: '#444',
-                            }}
                             numberOfLines={2}
-                            ellipsizeMode="tail">
+                            ellipsizeMode="tail"
+                            style={styles.cellText}>
                             {skillRow.skill || `Skill ${rowIndex + 1}`}
                           </Text>
                         </View>
                         {skillRow.roll.map(([index, value], colIndex) => (
                           <View
                             key={`cell-${rowIndex}-${colIndex}`}
-                            style={{
-                              padding: 10,
-                              width: 50,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              borderRightWidth: 1,
-                              borderColor: '#eee',
-                            }}>
-                            <Text
-                              style={{
-                                fontSize: 14,
-                                color: '#444',
-                              }}>
+                            style={styles.tableCell}>
+                            <Text style={styles.cellText}>
                               {symbolMap[value]}
                             </Text>
                           </View>
                         ))}
                       </View>
                     ))}
-                </View>
+                </ScrollView>
               </ScrollView>
             </View>
 
@@ -700,21 +609,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
   },
   tableHeaderCell: {
-    padding: 8,
-    minWidth: 80,
-    height: 40, // Fixed header height
+    width: 50,
+    height: 40,
     borderWidth: 1,
     borderColor: '#ccc',
-    backgroundColor: '#e6e6e6',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e6e6e6',
   },
   tableCell: {
-    padding: 8,
-    minWidth: 80,
-    height: 40, // Fixed cell height
+    width: 50,
+    height: 40,
     borderWidth: 1,
     borderColor: '#ccc',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   firstColumn: {
     backgroundColor: '#d9edf7',
@@ -759,6 +668,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     marginHorizontal: 5,
+  },
+  tableHeaderCellFixed: {
+    width: 100,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e6e6e6',
+  },
+  tableCellFixed: {
+    width: 100,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
 });
 
