@@ -16,9 +16,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
-import demo3 from '../components/demo3.json';
-import demo1 from '../components/demo1.json';
-import demo2 from '../components/demo2.json';
+import demo1 from '../utils/demo1.json';
+import demo2 from '../utils/demo2.json';
+import demo3 from '../utils/demo3.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 const {width, height} = Dimensions.get('window');
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   modalBody: {
     padding: 20,
     alignItems: 'center',
-    flex: 1, 
+    flex: 1,
   },
   successIcon: {
     width: 60,
