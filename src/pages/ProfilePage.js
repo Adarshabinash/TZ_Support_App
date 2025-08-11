@@ -19,6 +19,10 @@ import DocumentScanner from 'react-native-document-scanner-plugin';
 import demo1 from '../utils/demo1.json';
 import demo2 from '../utils/demo2.json';
 import demo3 from '../utils/demo3.json';
+import demo4 from '../utils/demo4.json';
+import demo5 from '../utils/demo5.json';
+import demo6 from '../utils/demo6.json';
+import demo7 from '../utils/demo7.json';
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 const {width, height} = Dimensions.get('window');
@@ -366,7 +370,7 @@ const AndroidDocumentScanner = () => {
               </TouchableOpacity>
 
               <View style={styles.demoButtonsContainer}>
-                {[demo1, demo2, demo3, demo1, demo2, demo3, demo1, demo2].map(
+                {[demo1, demo2, demo3, demo4, demo5, demo6, demo7].map(
                   (demo, index) => (
                     <TouchableOpacity
                       key={index}
@@ -729,16 +733,17 @@ const styles = StyleSheet.create({
   },
   tableCellFixed: {
     width: 100,
-    height: 40,
+    height: 55,
     borderWidth: 1,
     borderColor: '#ccc',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
+    paddingVertical: 1,
   },
   tableCell: {
     width: 50,
-    height: 40,
+    height: 55,
     borderWidth: 1,
     borderColor: '#ccc',
     justifyContent: 'center',
@@ -750,6 +755,7 @@ const styles = StyleSheet.create({
   },
   cellText: {
     textAlign: 'center',
+    fontSize: 16,
   },
   evenRow: {
     backgroundColor: '#fff',
