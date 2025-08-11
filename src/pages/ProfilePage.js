@@ -36,6 +36,10 @@ const AndroidDocumentScanner = () => {
   const [activeData, setActiveData] = useState(null); // <- NEW STATE
   const [processingIndex, setProcessingIndex] = useState(null);
 
+  // Edit states for changing symbols
+  const [editOptionsVisible, setEditOptionsVisible] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // { rowIndex, colIndex, oldValue }
+
   useEffect(() => {
     checkCameraPermission();
   }, []);
@@ -200,6 +204,105 @@ const AndroidDocumentScanner = () => {
     triangle: '🔺',
   };
 
+  /* -------------------------
+     Editing logic starts here
+     ------------------------- */
+
+  // Called when a cell is pressed in the table
+  const onCellPress = (rowIndex, colIndex, value) => {
+    // Only allow editing if the current cell is a star (as per user's requirement)
+    if (value !== 'star') {
+      return;
+    }
+    setEditTarget({rowIndex, colIndex, oldValue: value});
+    setEditOptionsVisible(true);
+  };
+
+  // Called when user chooses a new symbol from options modal
+  const confirmChange = newValue => {
+    if (!editTarget) return;
+    const oldSym = symbolMap[editTarget.oldValue] || editTarget.oldValue;
+    const newSym = symbolMap[newValue] || newValue;
+
+    Alert.alert(
+      'Confirm change',
+      `Change ${oldSym} to ${newSym}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Yes',
+          onPress: () => applyChange(newValue),
+        },
+      ],
+      {cancelable: true},
+    );
+  };
+
+  // Apply the change to activeData (immutable update)
+  const applyChange = newValue => {
+    if (!activeData || !editTarget) {
+      setEditOptionsVisible(false);
+      setEditTarget(null);
+      return;
+    }
+
+    try {
+      // Deep clone activeData to avoid mutating original object
+      const updated = JSON.parse(JSON.stringify(activeData));
+
+      // We need to find the row within the flattened output order:
+      // same order as activeData.result.flatMap(cat => cat.output)
+      let counter = 0;
+      let modified = false;
+
+      for (let catIdx = 0; catIdx < (updated.result || []).length; catIdx++) {
+        const category = updated.result[catIdx];
+        if (!category || !Array.isArray(category.output)) continue;
+
+        for (let outIdx = 0; outIdx < category.output.length; outIdx++) {
+          if (counter === editTarget.rowIndex) {
+            // found the row to modify
+            const row = category.output[outIdx];
+            // Ensure roll exists and has the column we want
+            if (Array.isArray(row.roll) && row.roll[editTarget.colIndex]) {
+              // row.roll is an array of [index, value] pairs
+              // update the value (second element)
+              row.roll[editTarget.colIndex][1] = newValue;
+              modified = true;
+            } else {
+              // If column not present, we can either push or skip. We'll skip to be safe.
+              console.warn(
+                'applyChange: target column not present in row.roll, skipping',
+              );
+            }
+            break;
+          }
+          counter++;
+        }
+        if (modified) break;
+      }
+
+      if (modified) {
+        setActiveData(updated);
+      } else {
+        Alert.alert(
+          'Update failed',
+          'Could not locate target cell to update. No changes were made.',
+        );
+      }
+    } catch (err) {
+      console.error('applyChange error:', err);
+      Alert.alert('Error', 'Failed to apply change.');
+    } finally {
+      setEditOptionsVisible(false);
+      setEditTarget(null);
+    }
+  };
+
+  /* -------------------------
+     Editing logic ends here
+     ------------------------- */
+
   return (
     <LinearGradient colors={['#e0f7fa', '#ffffff']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -317,7 +420,6 @@ const AndroidDocumentScanner = () => {
               <ScrollView horizontal showsHorizontalScrollIndicator={true}>
                 <ScrollView>
                   {/* Header Row */}
-                  {/* Table Header */}
                   <View
                     style={{flexDirection: 'row', backgroundColor: '#f5f5f5'}}>
                     <View style={styles.tableHeaderCellFixed}>
@@ -360,9 +462,19 @@ const AndroidDocumentScanner = () => {
                           <View
                             key={`cell-${rowIndex}-${colIndex}`}
                             style={styles.tableCell}>
-                            <Text style={styles.cellText}>
-                              {symbolMap[value]}
-                            </Text>
+                            <TouchableOpacity
+                              activeOpacity={value === 'star' ? 0.6 : 1}
+                              onPress={() =>
+                                onCellPress(rowIndex, colIndex, value)
+                              }>
+                              <Text
+                                style={[
+                                  styles.cellText,
+                                  value === 'star' && styles.editableCellText,
+                                ]}>
+                                {symbolMap[value]}
+                              </Text>
+                            </TouchableOpacity>
                           </View>
                         ))}
                       </View>
@@ -388,6 +500,47 @@ const AndroidDocumentScanner = () => {
                 }}>
                 OK
               </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Options Modal (appears when user taps on a star cell) */}
+      <Modal
+        visible={editOptionsVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setEditOptionsVisible(false);
+          setEditTarget(null);
+        }}>
+        <View style={styles.editModalOverlay}>
+          <View style={styles.editModalContainer}>
+            <Text style={styles.editModalTitle}>Change symbol</Text>
+
+            <View style={styles.editOptionsRow}>
+              <TouchableOpacity
+                style={styles.editOptionButton}
+                onPress={() => confirmChange('triangle')}>
+                <Text style={styles.editOptionText}>
+                  {symbolMap.triangle} Triangle
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.editOptionButton}
+                onPress={() => confirmChange('plus')}>
+                <Text style={styles.editOptionText}>{symbolMap.plus} Plus</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.editCancelButton}
+              onPress={() => {
+                setEditOptionsVisible(false);
+                setEditTarget(null);
+              }}>
+              <Text style={styles.editCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -686,6 +839,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
+  },
+
+  /* Edit modal styles */
+  editModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  editModalContainer: {
+    backgroundColor: '#fff',
+    padding: 18,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    minHeight: 160,
+    alignItems: 'center',
+  },
+  editModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  editOptionsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+  },
+  editOptionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  editCancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    marginTop: 6,
+  },
+  editCancelText: {
+    fontSize: 16,
+    color: '#777',
+  },
+  editableCellText: {
+    // visually hint that this cell is editable (star)
+    // textDecorationLine: 'underline',
   },
 });
 
