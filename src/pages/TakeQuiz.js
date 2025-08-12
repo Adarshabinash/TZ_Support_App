@@ -42,6 +42,7 @@ const AndroidDocumentScanner = () => {
   const [showDataModal, setShowDataModal] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({width: 0, height: 0});
   const [processingIndex, setProcessingIndex] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   // Define the order of class data to display
   const classOrder = [
@@ -105,15 +106,30 @@ const AndroidDocumentScanner = () => {
   };
 
   const loadStudentData = classIndex => {
-    setIsLoading(true);
     setStudentData([]);
     setProcessingIndex(classIndex);
+    setProgress(0);
 
-    // Show loading for 2 seconds
+    const totalDuration = 2000; // total ms for loading
+    const intervalDuration = 100; // ms per tick
+    const totalSteps = totalDuration / intervalDuration;
+    const progressIncrement = 100 / totalSteps;
+
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const next = prev + progressIncrement;
+        if (next >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return next;
+      });
+    }, intervalDuration);
+
     setTimeout(() => {
+      clearInterval(interval);
+      setProgress(100);
       const {data, name} = classOrder[classIndex];
-
-      // Format the data to match expected structure
       const formattedData = data.map(student => ({
         roll_number: student.roll,
         name: student.studentName,
@@ -122,10 +138,9 @@ const AndroidDocumentScanner = () => {
 
       setStudentData(formattedData);
       setCurrentClass(name);
-      setIsLoading(false);
       setProcessingIndex(null);
       setShowDataModal(true);
-    }, 2000);
+    }, totalDuration);
   };
 
   const scanDocument = async () => {
@@ -189,9 +204,9 @@ const AndroidDocumentScanner = () => {
           <Text style={styles.cellText}>{item.name}</Text>
         </View>
       )}
-      <View style={styles.tableCellFixed}>
+      {/* <View style={styles.tableCellFixed}>
         <Text style={styles.cellText}>{item.class}</Text>
-      </View>
+      </View> */}
     </View>
   );
 
@@ -281,7 +296,7 @@ const AndroidDocumentScanner = () => {
                       justifyContent: 'flex-end',
                       alignItems: 'center',
                       position: 'relative',
-                      borderBottomWidth: 3,
+                      borderBottomWidth: 4,
                       borderBottomColor: '#dbdbdbff',
                     }}
                     onPress={() => handleClassSelect(index)}
@@ -290,10 +305,35 @@ const AndroidDocumentScanner = () => {
                       <View
                         style={{
                           position: 'absolute',
-                          top: -280,
-                          justifyContent: 'center',
+                          top: -300,
+                          left: 30,
+                          alignItems: 'center',
+                          padding: 10,
+                          backgroundColor: '#fff',
+                          borderRadius: 8,
+                          elevation: 4,
                         }}>
-                        <ActivityIndicator size={90} color="#666" />
+                        <ActivityIndicator size={40} color="#666" />
+                        <Text style={{marginTop: 5, fontSize: 14}}>
+                          Processing: {Math.round(progress)}%
+                        </Text>
+                        <View
+                          style={{
+                            height: 6,
+                            width: 100,
+                            backgroundColor: '#e0e0e0',
+                            borderRadius: 3,
+                            marginTop: 5,
+                            overflow: 'hidden',
+                          }}>
+                          <View
+                            style={{
+                              height: 6,
+                              width: `${progress}%`,
+                              backgroundColor: '#4caf50',
+                            }}
+                          />
+                        </View>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -339,9 +379,9 @@ const AndroidDocumentScanner = () => {
                     <View style={styles.tableHeaderCellFlex}>
                       <Text style={styles.headerText}>Student Name</Text>
                     </View>
-                    <View style={styles.tableHeaderCellFixed}>
+                    {/* <View style={styles.tableHeaderCellFixed}>
                       <Text style={styles.headerText}>Class</Text>
-                    </View>
+                    </View> */}
                   </View>
 
                   {/* Table Body */}
@@ -434,6 +474,8 @@ const styles = StyleSheet.create({
   resultContainer: {
     width: '100%',
     backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 12,
     padding: 15,
     shadowColor: '#000',
@@ -469,6 +511,7 @@ const styles = StyleSheet.create({
   actionButton: {
     backgroundColor: '#00BCD4',
     paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
     width: '30%',
     alignItems: 'center',
@@ -476,6 +519,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   recaptureButton: {
+    width: '100%',
     backgroundColor: '#FF3A30',
   },
   actionButtonText: {
@@ -595,7 +639,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   tableCellFlex: {
-    width: 200,
+    width: '100%',
     height: 40,
     justifyContent: 'center',
     paddingHorizontal: 4,
@@ -606,6 +650,7 @@ const styles = StyleSheet.create({
   },
   cellText: {
     textAlign: 'center',
+    fontSize: 17,
   },
   input: {
     borderWidth: 1,
@@ -613,6 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
     backgroundColor: 'white',
+    fontSize: 16,
   },
   evenRow: {
     backgroundColor: '#fff',
