@@ -377,7 +377,9 @@ const AndroidDocumentScanner = () => {
                       <Text style={styles.headerText}>Roll No.</Text>
                     </View>
                     <View style={styles.tableHeaderCellFlex}>
-                      <Text style={styles.headerText}>Student Name</Text>
+                      <Text style={[styles.headerText, {marginLeft: 80}]}>
+                        Student Name
+                      </Text>
                     </View>
                     {/* <View style={styles.tableHeaderCellFixed}>
                       <Text style={styles.headerText}>Class</Text>
@@ -609,9 +611,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    minWidth: 370,
   },
   headerRow: {
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#e6e6e6',
     borderBottomWidth: 2,
     borderBottomColor: '#ccc',
   },
@@ -629,7 +632,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#e6e6e6',
-    paddingHorizontal: 4,
+    // paddingHorizontal: 4,
+    marginLeft: 70,
   },
   tableCellFixed: {
     width: 80,
