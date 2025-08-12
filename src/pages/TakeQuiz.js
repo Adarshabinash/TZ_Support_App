@@ -295,49 +295,50 @@ const AndroidDocumentScanner = () => {
                       height: 20,
                       justifyContent: 'flex-end',
                       alignItems: 'center',
-                      position: 'relative',
                       borderBottomWidth: 4,
                       borderBottomColor: '#dbdbdbff',
                     }}
                     onPress={() => handleClassSelect(index)}
-                    disabled={processingIndex !== null}>
-                    {processingIndex === index && (
+                    disabled={processingIndex !== null}
+                  />
+                ))}
+                {processingIndex !== null && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -200,
+                      left: '60%',
+                      transform: [{translateX: -75}, {translateY: -60}],
+                      alignItems: 'center',
+                      padding: 20,
+                      backgroundColor: '#fff',
+                      borderRadius: 8,
+                      elevation: 4,
+                      zIndex: 1000,
+                    }}>
+                    <ActivityIndicator size={40} color="#666" />
+                    <Text style={{marginTop: 5, fontSize: 14}}>
+                      Processing: {Math.round(progress)}%
+                    </Text>
+                    <View
+                      style={{
+                        height: 6,
+                        width: 100,
+                        backgroundColor: '#e0e0e0',
+                        borderRadius: 3,
+                        marginTop: 5,
+                        overflow: 'hidden',
+                      }}>
                       <View
                         style={{
-                          position: 'absolute',
-                          top: -300,
-                          left: 30,
-                          alignItems: 'center',
-                          padding: 10,
-                          backgroundColor: '#fff',
-                          borderRadius: 8,
-                          elevation: 4,
-                        }}>
-                        <ActivityIndicator size={40} color="#666" />
-                        <Text style={{marginTop: 5, fontSize: 14}}>
-                          Processing: {Math.round(progress)}%
-                        </Text>
-                        <View
-                          style={{
-                            height: 6,
-                            width: 100,
-                            backgroundColor: '#e0e0e0',
-                            borderRadius: 3,
-                            marginTop: 5,
-                            overflow: 'hidden',
-                          }}>
-                          <View
-                            style={{
-                              height: 6,
-                              width: `${progress}%`,
-                              backgroundColor: '#4caf50',
-                            }}
-                          />
-                        </View>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
+                          height: 6,
+                          width: `${progress}%`,
+                          backgroundColor: '#4caf50',
+                        }}
+                      />
+                    </View>
+                  </View>
+                )}
               </View>
             </View>
 
