@@ -45,11 +45,11 @@ const AndroidDocumentScanner = () => {
 
   // Define the order of class data to display
   const classOrder = [
-    {data: class5Students, name: 'Class 5'},
-    {data: class4Students, name: 'Class 4'},
-    {data: class3Students, name: 'Class 3'},
-    {data: class2Students, name: 'Class 2'},
     {data: class1Students, name: 'Class 1'},
+    {data: class2Students, name: 'Class 2'},
+    {data: class3Students, name: 'Class 3'},
+    {data: class4Students, name: 'Class 4'},
+    {data: class5Students, name: 'Class 5'},
   ];
 
   useEffect(() => {
