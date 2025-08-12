@@ -377,7 +377,7 @@ const AndroidDocumentScanner = () => {
                       <Text style={styles.headerText}>Roll No.</Text>
                     </View>
                     <View style={styles.tableHeaderCellFlex}>
-                      <Text style={[styles.headerText, {marginLeft: 80}]}>
+                      <Text style={[styles.headerText, {marginLeft: 20}]}>
                         Student Name
                       </Text>
                     </View>
