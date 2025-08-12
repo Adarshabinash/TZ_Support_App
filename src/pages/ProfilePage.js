@@ -11,18 +11,22 @@ import {
   Dimensions,
   ActivityIndicator,
   LogBox,
-  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import DocumentScanner from 'react-native-document-scanner-plugin';
-import RNFS from 'react-native-fs';
-import ImagePicker from 'react-native-image-crop-picker';
+import RNBlobUtil from 'react-native-blob-util';
 import axios from 'axios';
+import {Image as ImageJS} from 'image-js';
+
+// Initialize Buffer polyfill properly
+if (typeof global.Buffer === 'undefined') {
+  global.Buffer = require('buffer').Buffer;
+}
 
 LogBox.ignoreLogs(['ViewPropTypes will be removed']);
 
-const {width, height} = Dimensions.get('window');
+const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
 const AndroidDocumentScanner = () => {
   const [imageUri, setImageUri] = useState(null);
@@ -37,18 +41,51 @@ const AndroidDocumentScanner = () => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedUrls, setUploadedUrls] = useState([]);
-  console.log('uploadedUrls', uploadedUrls);
-  const {width, height} = Dimensions.get('window');
+  const [processedImages, setProcessedImages] = useState([]);
+  const [allUploadedUrls, setAllUploadedUrls] = useState([]);
+  console.log('allUploadedUrls', allUploadedUrls);
+  const [showUrlList, setShowUrlList] = useState(false); // Toggle URL list visibility
+
   const BATCH_SIZE = 5;
+  const NUM_STRIPS = 30;
+
   useEffect(() => {
+    console.log('Component mounted - checking camera permission');
     checkCameraPermission();
+    return () => {
+      console.log('Component unmounting - cleaning up temp files');
+      cleanupTempFiles();
+    };
   }, []);
+
+  const cleanupTempFiles = async () => {
+    try {
+      console.log('Starting cleanup of temp files');
+      let cleanedCount = 0;
+      for (const uri of processedImages) {
+        try {
+          const path = uri.replace('file://', '');
+          if (await RNBlobUtil.fs.exists(path)) {
+            await RNBlobUtil.fs.unlink(path);
+            cleanedCount++;
+          }
+        } catch (error) {
+          console.warn('Error cleaning up file:', uri, error);
+        }
+      }
+      console.log(`Cleaned up ${cleanedCount} temporary files`);
+    } catch (error) {
+      console.warn('Overall cleanup error:', error);
+    }
+  };
 
   const checkCameraPermission = async () => {
     try {
+      console.log('Checking camera permission');
       const granted = await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.CAMERA,
       );
+      console.log('Camera permission status:', granted ? 'GRANTED' : 'DENIED');
       setHasCameraPermission(granted);
       return granted;
     } catch (err) {
@@ -59,6 +96,7 @@ const AndroidDocumentScanner = () => {
 
   const requestCameraPermission = async () => {
     try {
+      console.log('Requesting camera permission');
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
@@ -69,6 +107,10 @@ const AndroidDocumentScanner = () => {
         },
       );
       const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
+      console.log(
+        'Permission request result:',
+        isGranted ? 'GRANTED' : 'DENIED',
+      );
       setHasCameraPermission(isGranted);
       return isGranted;
     } catch (err) {
@@ -79,7 +121,12 @@ const AndroidDocumentScanner = () => {
 
   const detectTextFromImage = async uri => {
     try {
+      console.log('Starting text detection for image:', uri);
       const result = await TextRecognition.recognize(uri);
+      console.log(
+        'Text detection completed. Found text:',
+        result?.text?.length > 0,
+      );
       setDetectedText(result?.text || 'No text detected');
     } catch (error) {
       console.error('OCR error:', error);
@@ -87,102 +134,186 @@ const AndroidDocumentScanner = () => {
     }
   };
 
-  const cropImage = async (uri, cropData) => {
+  const loadImageForProcessing = async uri => {
     try {
-      const croppedPath = `${
-        RNFS.CachesDirectoryPath
-      }/cropped_${Date.now()}.jpg`;
-
-      // Use ImagePicker to crop the image
-      const croppedImage = await ImagePicker.openCropper({
-        path: uri,
-        width: cropData.width,
-        height: cropData.height,
-        x: cropData.x,
-        y: cropData.y,
-        includeBase64: false,
-        mediaType: 'photo',
-        cropperCircleOverlay: false,
-        compressImageQuality: 0.8,
-        freeStyleCropEnabled: false,
-      });
-
-      // Rename the cropped image to our desired path
-      await RNFS.moveFile(croppedImage.path, croppedPath);
-
-      return `file://${croppedPath}`;
+      console.log('Loading image for processing:', uri);
+      const imagePath = uri.replace('file://', '');
+      const base64Data = await RNBlobUtil.fs.readFile(imagePath, 'base64');
+      const image = await ImageJS.load(`data:image/jpeg;base64,${base64Data}`);
+      console.log(
+        'Image loaded successfully. Dimensions:',
+        image.width,
+        'x',
+        image.height,
+      );
+      return image;
     } catch (error) {
-      console.error('Error cropping image:', error);
-      return uri;
+      console.error('Error loading image:', error);
+      throw error;
+    }
+  };
+
+  const processAndSplitImage = async uri => {
+    try {
+      console.log(
+        `Starting to process and split image into ${NUM_STRIPS} strips`,
+      );
+      const image = await loadImageForProcessing(uri);
+      const stripWidth = Math.floor(image.width / NUM_STRIPS);
+      const strips = [];
+      const processedUris = [];
+
+      console.log(`Original image dimensions: ${image.width}x${image.height}`);
+      console.log(`Calculated strip width: ${stripWidth}px`);
+
+      for (let i = 0; i < NUM_STRIPS; i++) {
+        const x = i * stripWidth;
+        const width = i === NUM_STRIPS - 1 ? image.width - x : stripWidth;
+
+        console.log(
+          `Processing strip ${i + 1}/${NUM_STRIPS} - x: ${x}, width: ${width}`,
+        );
+
+        const strip = image.crop({
+          x,
+          y: 0,
+          width,
+          height: image.height,
+        });
+
+        const stripBase64 = await strip.toBase64('image/jpeg');
+        const stripPath = `${
+          RNBlobUtil.fs.dirs.CacheDir
+        }/strip_${i}_${Date.now()}.jpg`;
+        await RNBlobUtil.fs.writeFile(stripPath, stripBase64, 'base64');
+
+        strips.push({
+          uri: `file://${stripPath}`,
+          originalWidth: image.width,
+          originalHeight: image.height,
+          width: strip.width,
+          height: strip.height,
+          crop: {x, y: 0, width: strip.width, height: strip.height},
+          label: `Strip ${i + 1}`,
+          uniquePath: stripPath,
+        });
+        processedUris.push(`file://${stripPath}`);
+
+        console.log(`Created strip ${i + 1} at path: ${stripPath}`);
+      }
+
+      setProcessedImages(processedUris);
+      console.log(`Successfully created ${strips.length} image strips`);
+      return strips;
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw error;
     }
   };
 
   const uploadImageStrips = async strips => {
     setUploading(true);
-    const allUrls = [];
+    const urls = Array(strips.length).fill(null);
+    setUploadedUrls(urls);
+    setAllUploadedUrls([]); // Reset all URLs when starting new upload
+
+    console.log(
+      `Starting upload of ${strips.length} image strips in batches of ${BATCH_SIZE}`,
+    );
 
     try {
       for (let i = 0; i < strips.length; i += BATCH_SIZE) {
+        const batchStartTime = Date.now();
         const batch = strips.slice(i, i + BATCH_SIZE);
-        const batchUrls = [];
+        console.log(
+          `Processing batch ${Math.floor(i / BATCH_SIZE) + 1} (strips ${
+            i + 1
+          }-${Math.min(i + BATCH_SIZE, strips.length)})`,
+        );
 
-        for (let j = 0; j < batch.length; j++) {
-          const strip = batch[j];
+        const batchResults = await Promise.all(
+          batch.map(async (strip, batchIndex) => {
+            const globalIndex = i + batchIndex;
+            console.log(`Starting upload for strip ${globalIndex + 1}`);
 
-          try {
-            const croppedUri = await cropImage(strip.uri, strip.crop);
-
-            const fileName = `strip_${i + j}_${Date.now()}.jpg`;
-            const file = {
-              uri: croppedUri,
-              type: 'image/jpeg',
-              name: fileName,
-            };
-
-            console.log(`Uploading strip ${i + j + 1}/${strips.length}...`);
-
-            const uploadResult = await UploadFileToCloud({file, fileName});
-            console.log('uploadResult', uploadResult);
-            if (uploadResult.success) {
-              batchUrls.push({
-                url: uploadResult.url,
-                path: croppedUri,
-                index: i + j,
-              });
-              console.log(`Upload successful: ${uploadResult.url}`);
-            } else {
-              batchUrls.push(null);
-              console.warn(`Upload failed for strip ${i + j + 1}`);
-            }
-
-            // Clean up temporary file
             try {
-              await RNFS.unlink(croppedUri.replace('file://', ''));
-            } catch (cleanError) {
-              console.warn('Failed to clean up temp file:', cleanError);
-            }
-          } catch (error) {
-            console.error(`Error processing strip ${i + j + 1}:`, error);
-            batchUrls.push(null);
-          }
-        }
+              const fileName = `strip_${globalIndex}_${Date.now()}.jpg`;
+              const file = {
+                uri: strip.uri,
+                type: 'image/jpeg',
+                name: fileName,
+              };
 
-        // Update UI with current batch results
-        const newUrls = [...allUrls];
-        batchUrls.forEach((url, idx) => {
-          newUrls[i + idx] = url;
+              console.log(`Uploading strip ${globalIndex + 1} as ${fileName}`);
+              const uploadStartTime = Date.now();
+              const uploadResult = await UploadFileToCloud({file, fileName});
+              const uploadTime = Date.now() - uploadStartTime;
+
+              if (uploadResult.success) {
+                console.log(
+                  `Upload successful for strip ${
+                    globalIndex + 1
+                  } in ${uploadTime}ms. URL: ${uploadResult.url}`,
+                );
+                return {
+                  url: uploadResult.url,
+                  path: strip.uri,
+                  index: globalIndex,
+                };
+              } else {
+                console.log(
+                  `Upload failed for strip ${
+                    globalIndex + 1
+                  } after ${uploadTime}ms`,
+                );
+                return null;
+              }
+            } catch (error) {
+              console.error(`Error uploading strip ${globalIndex + 1}:`, error);
+              return null;
+            }
+          }),
+        );
+
+        const newUrls = [...urls];
+        const successfulUploads = batchResults.filter(r => r !== null);
+
+        // Update the allUploadedUrls state with the new successful uploads
+        setAllUploadedUrls(prev => [
+          ...prev,
+          ...successfulUploads.map(upload => ({
+            url: upload.url,
+            index: upload.index,
+          })),
+        ]);
+
+        batchResults.forEach((result, batchIndex) => {
+          if (result) {
+            newUrls[i + batchIndex] = result;
+          }
         });
         setUploadedUrls(newUrls);
-        allUrls.push(...batchUrls);
 
-        // Wait a bit before next batch (optional)
+        const batchEndTime = Date.now();
+        console.log(
+          `Batch ${Math.floor(i / BATCH_SIZE) + 1} completed in ${
+            batchEndTime - batchStartTime
+          }ms. Successfully uploaded ${successfulUploads.length}/${
+            batch.length
+          } strips`,
+        );
+
         if (i + BATCH_SIZE < strips.length) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log(`Waiting 500ms before next batch...`);
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
-      console.log('All uploads completed:', allUrls);
-      return allUrls;
+      const successfulUploads = uploadedUrls.filter(url => url !== null).length;
+      console.log(
+        `Upload process completed. Successfully uploaded ${successfulUploads}/${strips.length} strips`,
+      );
+      return urls;
     } catch (error) {
       console.error('Error in upload process:', error);
       throw error;
@@ -193,13 +324,32 @@ const AndroidDocumentScanner = () => {
 
   const scanDocument = async () => {
     try {
+      console.log('Starting document scan process');
       if (!hasCameraPermission) {
+        console.log('No camera permission - requesting...');
         const permissionGranted = await requestCameraPermission();
-        if (!permissionGranted) return;
+        if (!permissionGranted) {
+          console.log('Camera permission denied');
+          Alert.alert(
+            'Permission Required',
+            'Camera permission is needed to scan documents',
+          );
+          return;
+        }
       }
 
       setIsScanning(true);
+      setImageUri(null);
+      setImagePieces([]);
+      setDetectedText('');
+      setSelectedPiece(null);
+      setUploadedUrls([]);
+      setAllUploadedUrls([]);
+      setShowUrlList(false);
+      await cleanupTempFiles();
+      setProcessedImages([]);
 
+      console.log('Opening document scanner');
       const {scannedImages} = await DocumentScanner.scanDocument({
         responseType: 'uri',
         quality: 1.0,
@@ -209,65 +359,53 @@ const AndroidDocumentScanner = () => {
 
       if (scannedImages?.length > 0) {
         const uri = scannedImages[0];
+        console.log('Document scanned successfully. URI:', uri);
         setImageUri(uri);
 
         const dimensions = await getImageDimensions(uri);
+        console.log('Scanned image dimensions:', dimensions);
         setImageDimensions(dimensions);
 
-        const pieces = splitImageIntoPieces(
-          uri,
-          dimensions.width,
-          dimensions.height,
-        );
+        console.log('Processing scanned image into strips...');
+        const pieces = await processAndSplitImage(uri);
         setImagePieces(pieces);
 
-        // Start batch uploading
+        console.log('Starting upload of image strips...');
         await uploadImageStrips(pieces);
+
+        console.log('Starting text detection...');
         await detectTextFromImage(uri);
+      } else {
+        console.log('Document scan was cancelled');
       }
     } catch (error) {
       console.error('Scan error:', error);
-      Alert.alert('Error', 'Failed to scan document');
+      Alert.alert('Error', 'Failed to scan document: ' + error.message);
     } finally {
       setIsScanning(false);
+      console.log('Scan process completed');
     }
   };
 
   const getImageDimensions = uri => {
     return new Promise(resolve => {
-      Image.getSize(uri, (width, height) => {
-        resolve({width, height});
-      });
+      console.log('Getting image dimensions for:', uri);
+      Image.getSize(
+        uri,
+        (width, height) => {
+          console.log('Image dimensions retrieved:', width, height);
+          resolve({width, height});
+        },
+        error => {
+          console.warn('Failed to get image dimensions:', error);
+          resolve({width: 300, height: 400});
+        },
+      );
     });
   };
 
-  const splitImageIntoPieces = (uri, imgWidth, imgHeight) => {
-    const pieceWidth = imgWidth / 30;
-    const pieces = [];
-    const timestamp = Date.now();
-
-    for (let i = 0; i < 30; i++) {
-      pieces.push({
-        uri,
-        originalWidth: imgWidth,
-        originalHeight: imgHeight,
-        width: pieceWidth,
-        height: imgHeight,
-        crop: {
-          x: i * pieceWidth,
-          y: 0,
-          width: pieceWidth,
-          height: imgHeight,
-        },
-        label: `Strip ${i + 1}`,
-        uniquePath: `${uri}_${timestamp}_strip_${i}`,
-      });
-    }
-
-    return pieces;
-  };
-
   const handlePiecePress = index => {
+    console.log('Piece pressed:', index);
     setSelectedPiece(selectedPiece === index ? null : index);
   };
 
@@ -276,7 +414,7 @@ const AndroidDocumentScanner = () => {
     const normalHeight = 150;
     const selectedHeight = 300;
     const displayHeight = isSelected ? selectedHeight : normalHeight;
-    const aspectRatio = piece.width / piece.originalHeight;
+    const aspectRatio = piece.width / piece.height;
     const displayWidth = displayHeight * aspectRatio;
     const uploadedInfo = uploadedUrls[index];
 
@@ -298,16 +436,11 @@ const AndroidDocumentScanner = () => {
           ]}>
           <Image
             source={{uri: piece.uri}}
-            style={[
-              styles.pieceImage,
-              {
-                width:
-                  piece.originalWidth * (displayHeight / piece.originalHeight),
-                height: displayHeight,
-                left: -piece.crop.x * (displayHeight / piece.originalHeight),
-              },
-            ]}
-            resizeMode="cover"
+            style={{
+              width: '100%',
+              height: '100%',
+            }}
+            resizeMode="contain"
           />
         </View>
         <Text style={styles.pieceLabel}>{piece.label}</Text>
@@ -328,12 +461,22 @@ const AndroidDocumentScanner = () => {
     );
   };
 
-  const handleRecapture = () => {
+  const handleRecapture = async () => {
+    console.log('User requested to recapture document');
+    await cleanupTempFiles();
     setImageUri(null);
     setImagePieces([]);
     setDetectedText('');
     setSelectedPiece(null);
     setUploadedUrls([]);
+    setAllUploadedUrls([]);
+    setShowUrlList(false);
+    setProcessedImages([]);
+    console.log('State reset for recapture');
+  };
+
+  const toggleUrlList = () => {
+    setShowUrlList(!showUrlList);
   };
 
   return (
@@ -366,6 +509,9 @@ const AndroidDocumentScanner = () => {
           <View style={styles.uploadingContainer}>
             <Text style={styles.uploadingText}>Uploading image strips...</Text>
             <ActivityIndicator size="large" color="#00BCD4" />
+            <Text style={styles.uploadProgress}>
+              {uploadedUrls.filter(url => url).length} / {NUM_STRIPS} uploaded
+            </Text>
           </View>
         )}
 
@@ -381,7 +527,9 @@ const AndroidDocumentScanner = () => {
               resizeMode="contain"
             />
 
-            <Text style={styles.sectionTitle}>Document Strips:</Text>
+            <Text style={styles.sectionTitle}>
+              Document Strips ({NUM_STRIPS}):
+            </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={true}
@@ -403,16 +551,51 @@ const AndroidDocumentScanner = () => {
               <TouchableOpacity
                 style={[styles.actionButton, styles.confirmButton]}
                 onPress={() => {
+                  const successfulUploads = allUploadedUrls.length;
+                  console.log(
+                    'User confirmed upload. Successful uploads:',
+                    successfulUploads,
+                  );
                   Alert.alert(
                     'Upload Complete',
-                    `Uploaded ${
-                      uploadedUrls.filter(url => url).length
-                    }/30 strips successfully`,
+                    `Uploaded ${successfulUploads}/${NUM_STRIPS} strips successfully`,
+                    [
+                      {
+                        text: 'View URLs',
+                        onPress: toggleUrlList,
+                      },
+                      {text: 'OK'},
+                    ],
                   );
                 }}>
                 <Text style={styles.actionButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
+
+            {showUrlList && (
+              <View style={styles.urlListContainer}>
+                <Text style={styles.urlListTitle}>Uploaded URLs:</Text>
+                <ScrollView style={styles.urlScrollView}>
+                  {allUploadedUrls
+                    .sort((a, b) => a.index - b.index)
+                    .map((item, idx) => (
+                      <View key={idx} style={styles.urlItem}>
+                        <Text style={styles.urlIndex}>
+                          Strip {item.index + 1}:
+                        </Text>
+                        <Text style={styles.urlText} selectable={true}>
+                          {item.url}
+                        </Text>
+                      </View>
+                    ))}
+                </ScrollView>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={toggleUrlList}>
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -427,7 +610,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
-    minHeight: height,
   },
   header: {
     fontSize: 24,
@@ -473,6 +655,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    marginBottom: 20,
   },
   scannedImage: {
     width: '100%',
@@ -489,22 +672,25 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   pieceContainer: {
-    marginRight: 10,
+    marginRight: 15,
     alignItems: 'center',
     position: 'relative',
   },
   pieceImageWrapper: {
     overflow: 'hidden',
     borderRadius: 4,
+    backgroundColor: '#f9f9f9',
   },
   pieceImage: {
-    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   pieceLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#555',
     textAlign: 'center',
     marginTop: 5,
+    fontWeight: '500',
   },
   uploadSuccess: {
     position: 'absolute',
@@ -520,16 +706,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   pathText: {
-    fontSize: 8,
+    fontSize: 10,
     color: '#888',
     textAlign: 'center',
     marginTop: 2,
-    maxWidth: 100,
+    maxWidth: 120,
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginTop: 20,
   },
   actionButton: {
     padding: 12,
@@ -560,15 +746,64 @@ const styles = StyleSheet.create({
     color: '#2C3E50',
     marginBottom: 10,
   },
+  uploadProgress: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginTop: 5,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
     color: '#34495E',
   },
+  urlListContainer: {
+    marginTop: 20,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 15,
+  },
+  urlListTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#2C3E50',
+  },
+  urlScrollView: {
+    maxHeight: 200,
+    marginBottom: 10,
+  },
+  urlItem: {
+    marginBottom: 8,
+  },
+  urlIndex: {
+    fontWeight: '600',
+    color: '#3498db',
+  },
+  urlText: {
+    color: '#7f8c8d',
+    fontSize: 12,
+  },
+  closeButton: {
+    backgroundColor: '#e74c3c',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
 });
 
 export const UploadFileToCloud = async ({file, fileName}) => {
+  console.log(`Starting upload for file: ${fileName}`);
+  console.log('File details:', {
+    uri: file.uri,
+    type: file.type,
+    size: (await RNBlobUtil.fs.stat(file.uri.replace('file://', ''))).size,
+  });
+
   try {
     const formData = new FormData();
     formData.append('file', {
@@ -576,6 +811,9 @@ export const UploadFileToCloud = async ({file, fileName}) => {
       type: file.type,
       name: fileName,
     });
+
+    console.log('FormData created. Starting upload request...');
+    const uploadStartTime = Date.now();
 
     const response = await axios.post(
       `https://thinkzone.co/cloud-storage/uploadFile/${fileName}`,
@@ -588,12 +826,22 @@ export const UploadFileToCloud = async ({file, fileName}) => {
       },
     );
 
+    const uploadTime = Date.now() - uploadStartTime;
+    console.log(
+      `Upload completed in ${uploadTime}ms. Response status: ${response.status}`,
+    );
+    console.log('Response data:', response.data);
+
     return {
       success: response?.status === 200,
       url: response?.data?.url,
     };
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error uploading file:', {
+      error: error.message,
+      response: error.response?.data,
+      fileName,
+    });
     return {success: false, url: null};
   }
 };
