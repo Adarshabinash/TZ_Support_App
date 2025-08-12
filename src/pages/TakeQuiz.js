@@ -187,7 +187,7 @@ const AndroidDocumentScanner = () => {
   };
 
   const renderStudentItem = ({item, index}) => (
-    <View style={styles.tableRow}>
+    <View style={[styles.tableRow]}>
       <View style={styles.tableCellFixed}>
         <Text style={styles.cellText}>
           {String(item.roll_number).padStart(2, '0')}
@@ -369,31 +369,38 @@ const AndroidDocumentScanner = () => {
 
             {/* Body */}
             <View style={styles.modalBody}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-                <ScrollView>
-                  {/* Header Row */}
-                  <View style={[styles.tableRow, styles.headerRow]}>
-                    <View style={styles.tableHeaderCellFixed}>
-                      <Text style={styles.headerText}>Roll No.</Text>
-                    </View>
-                    <View style={styles.tableHeaderCellFlex}>
-                      <Text style={[styles.headerText, {marginLeft: 20}]}>
-                        Student Name
-                      </Text>
-                    </View>
-                    {/* <View style={styles.tableHeaderCellFixed}>
+              <ScrollView>
+                {/* Header Row */}
+                <View
+                  style={[
+                    styles.tableRow,
+                    styles.headerRow,
+                    {
+                      zIndex: 3,
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                    },
+                  ]}>
+                  <View style={styles.tableHeaderCellFixed}>
+                    <Text style={styles.headerText}>Roll No.</Text>
+                  </View>
+                  <View style={styles.tableHeaderCellFlex}>
+                    <Text style={styles.headerText}>Student Name</Text>
+                  </View>
+                  {/* <View style={styles.tableHeaderCellFixed}>
                       <Text style={styles.headerText}>Class</Text>
                     </View> */}
-                  </View>
+                </View>
 
-                  {/* Table Body */}
-                  <FlatList
-                    data={studentData}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={renderStudentItem}
-                    scrollEnabled={false}
-                  />
-                </ScrollView>
+                {/* Table Body */}
+                <FlatList
+                  data={studentData}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={renderStudentItem}
+                  scrollEnabled={false}
+                />
               </ScrollView>
             </View>
 
@@ -611,29 +618,28 @@ const styles = StyleSheet.create({
     minHeight: 40,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    minWidth: 370,
   },
   headerRow: {
-    backgroundColor: '#e6e6e6',
+    backgroundColor: '#f2f2f2',
     borderBottomWidth: 2,
     borderBottomColor: '#ccc',
   },
   tableHeaderCellFixed: {
-    width: 80,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e6e6e6',
-    paddingHorizontal: 4,
-  },
-  tableHeaderCellFlex: {
-    width: 200,
+    width: '20%',
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#e6e6e6',
     // paddingHorizontal: 4,
-    marginLeft: 70,
+    position: 'static',
+  },
+  tableHeaderCellFlex: {
+    width: '100%',
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e6e6e6',
+    // paddingHorizontal: 4,
   },
   tableCellFixed: {
     width: 80,
