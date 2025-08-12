@@ -650,6 +650,7 @@ const styles = StyleSheet.create({
   },
   cellText: {
     textAlign: 'center',
+    fontSize: 17,
   },
   input: {
     borderWidth: 1,
@@ -657,6 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
     backgroundColor: 'white',
+    fontSize: 16,
   },
   evenRow: {
     backgroundColor: '#fff',
